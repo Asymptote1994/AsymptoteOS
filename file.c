@@ -100,9 +100,9 @@ void create_fs(void)
 	sb->dir_entry_size = DIR_ENTRY_SIZE;
 	
 	if(sd_write_sector(sb_temp,0,1)==0)	//写入0扇区	
-		printk("super_block数据写入成功！\r\n"); 
+		printk("write super_block data success！\r\n"); 
 	else
-		printk("super_block数据写入失败！\r\n"); 
+		printk("write super_block data failed！\r\n"); 
 	
 	/************************/
 	/*      inode map       */
@@ -860,6 +860,10 @@ int open(const char *path_name, int flags)
 void init_fs(void)
 {
 	struct super_block *sb = super_block;
+
+	memset(fd_table, 0, sizeof(struct file) * NUM_FILE_DESC);
+	memset(inode_table, 0, sizeof(struct inode) * NUM_INODE);
+	memset(super_block, 0, sizeof(struct super_block) * NUM_SUPER_BLOCK);
 
 	/* 初始化全局变量super_block[]中所有的sb_dev参数为NO_DEV */
 	for (; sb < &super_block[NUM_SUPER_BLOCK]; sb++)

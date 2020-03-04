@@ -83,7 +83,7 @@ int sdi_test()  //测试函数
 	}
 
 	/* 写数据到sd */
-	if (sd_write_sector(0,(u32 *)send_buf, 1)) {
+	if (sd_write_sector((u32 *)send_buf, 0, 1)) {
 		printk("\r\n写入SD卡0地址数据成功！");
 	} else {
 		printk("\r\n写入SD卡0地址数据出错，终止！");
@@ -91,7 +91,7 @@ int sdi_test()  //测试函数
 	}
 	
 	/* 从sd读数据 */
-	if (sd_read_sector(0, (u32 *)recv_buf, 1)) {
+	if (sd_read_sector((u32 *)recv_buf, 0, 1)) {
 		printk("\r\n读出SD卡0地址数据成功！");
 		printk("\r\n读出的数据:\r\n");
 
@@ -99,10 +99,10 @@ int sdi_test()  //测试函数
 			if (i % 32)
 				printk("\r\n");
 			
-			printk("0x%x ",recv_buf[i]);
-			printk("0x%x ",recv_buf[i+1]);
-			printk("0x%x ",recv_buf[i+2]);
-			printk("0x%x ",recv_buf[i+3]);
+			printk("%d ",recv_buf[i]);
+			printk("%d ",recv_buf[i+1]);
+			printk("%d ",recv_buf[i+2]);
+			printk("%d ",recv_buf[i+3]);
 		}
 	} else {
 		printk("\r\n读出SD卡0地址数据出错，终止！");
@@ -110,7 +110,7 @@ int sdi_test()  //测试函数
 	}
 
 	/* 取消片选 */
-	select_or_deselect(0,SDCard.sdiRCA);
+//	select_or_deselect(0,SDCard.sdiRCA);
 
 	return 0;
 }
@@ -259,7 +259,7 @@ u32 SDI_Check_CMD_End(int cmd, int be_resp)
 		while (!( ((finish0 & 0x200) == 0x200) | ((finish0 & 0x400) == 0x400) ))    // Check cmd/rsp end
 	        finish0=SDICSTA;
 	 
-		printk("CMD%d:SDICSTA=0x%x, SDIRSP0=0x%x\r\n", cmd, SDICSTA, SDIRSP0);   
+//		printk("CMD%d:SDICSTA=0x%x, SDIRSP0=0x%x\r\n", cmd, SDICSTA, SDIRSP0);   
 
 		// CRC no check
 		if (cmd==1 | cmd==9 | cmd==41) {
@@ -628,7 +628,7 @@ u8 sd_read_sector(u32 *buf, u32 addr, u32 block_num)
 		if (SDIDSTA & 0x60) { 
 			//清除超时标志和CRC错误标志
 			SDIDSTA = (0x3 << 0x5); 
-			return 0;
+			return -1;
 		}
 		
 		status = SDIFSTA;
@@ -648,7 +648,7 @@ u8 sd_read_sector(u32 *buf, u32 addr, u32 block_num)
 	while (CMD12() != 1)				
 		SDICSTA = 0xF << 9;
 	 
-	return 1;
+	return 0;
 }
 
  
@@ -704,7 +704,7 @@ u8 sd_write_sector(u32 *buf, u32 addr, u32 block_num)
 	SDIDSTA = status; 
 	SDIDSTA = 0xf4;
 
-	return 1;
+	return 0;
 }
  
 void file_delay(u32 i)

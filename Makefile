@@ -3,13 +3,13 @@ LD = arm-linux-ld
 OBJCOPY = arm-linux-objcopy
 OBJJUMP = arm-linux-objdump
 
-CFLAGS = -g -Wall -O2 -nostdlib -fno-builtin -I$(shell pwd)/
+CFLAGS = -g -Wall -O2 -nostdlib -fno-builtin -I$(shell pwd)/ -I$(shell pwd)/include
 
 .PHONY: cp_file
 
-all: start.bin	task2.bin task3.bin cp_file
+all: start.bin	task2.bin task3.bin
 
-start.bin: head.o init.o main.o sched.o fork.o mem.o nand.o lcd.o list.o uart.o file.o sd.o print.o string.o
+start.bin: head.o init.o main.o sched.o fork.o mem.o nand.o lcd.o list.o uart.o file.o sd.o lib/libc.a #print.o 
 	$(LD) -Tstart.lds $^ -o start.elf
 	$(OBJCOPY) -S start.elf -O binary $@
 	$(OBJJUMP) -D -m arm start.elf > start.dis

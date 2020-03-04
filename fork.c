@@ -50,6 +50,8 @@ int do_fork(void (*fn)(void *), void *args)
 	if((tsk = get_task_struct_addr()) == (void *)0)
 		return -1;
 
+	memset(tsk, 0, sizeof(struct task_struct));
+
 	/* 让sp指向上述分配的地址的高地址顶端 */
 	tsk->sp = ((unsigned int)(tsk) + TASK_SIZE);
 	/* 为sp赋予寄存器初值 */

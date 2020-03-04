@@ -79,7 +79,7 @@ void __put_char(char *p,int num){
 		putc((unsigned char)*p++);
 	};
 }
-
+/*
 void *memcpy(void *dest,const void *src,unsigned int count)
 {
 	char *tmp = (char *) dest, *s = (char *) src;
@@ -87,7 +87,7 @@ void *memcpy(void *dest,const void *src,unsigned int count)
 		*tmp++ = *s++;
 	return dest;
 }
-
+*/
 char *number(char *str, int num,int base,unsigned int flags){
 	int i=0;
 	int sign=0;

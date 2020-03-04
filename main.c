@@ -4,7 +4,7 @@
 #include <fork.h>
 #include <nand.h>
 #include <lcd.h>
-#include <ctype.h>
+#include <file.h>
 
 
 //int addr = 0x31300000;
@@ -37,22 +37,22 @@ void clear_irq(void)
     INTPND = INTPND;     
 }
 
+void fs_task(void *param);
+
 void run_commond(char *comm)
 {
 	if (comm[0] == 'l' && comm[1] == 's') {
 		puts("hello，my boy!");
-		
+		fs_task(NULL);
+		show_dir_entry();
 	} else if (comm[0] == 'g' && comm[1] == 'r' && comm[2] == 'e') {		
 		draw_rect(200, 100, 400, 200, 0x0000ff);
 		puts("lcd test success");
-		
 	} else if (comm[0] == 'b' && comm[1] == 'l' && comm[2] == 'u') {		
 		draw_rect(100, 100, 200, 200, 0x00ff00);
 		puts("lcd test success");
-			
 	} else if (comm[0] == 'b' && comm[1] == 'o' && comm[2] == 'o' && comm[3] == 't') {		
 		//load_kernel();
-		
 	} else {
 		puts(comm);
 		puts(": command not found");
@@ -101,6 +101,42 @@ void fun_task2(void *p)
 	}
 }
 
+void fs_task(void *param)
+{
+	int n = 0;
+	int fd = -5;
+//	char key;
+	char buf_write[] = "    But a man is not made for defeat. A man can be destroyed but not defeated.";
+	char buf_read[] = {0};
+		
+	printk("reading data....r\n");
+	
+	fd = open("/first", O_CREAT);
+	if (fd == -1) {
+		printk("返回的fd: %d\r\n", fd);
+	} else {
+		printk("文件创建成功，返回的fd: %d\r\n", fd);
+		
+		n = write(fd, buf_write, strlen(buf_write));
+		printk("写入的文件长度: %d\r\n", n);
+		
+		close(fd);
+	}
+
+	fd = open("/first", O_RDWR);
+	if (fd == -1) {
+		printk("返回的fd: %d\r\n", fd);
+	} else {
+		printk("文件打开成功，返回的fd: %d\r\n", fd);
+		
+		n = read(fd, buf_read, strlen(buf_write));				
+		buf_read[n] = 0;
+		printk("读出的文件长度: %d, 文件内容为: %s\r\n", n, buf_read);
+		
+		close(fd);
+	}			
+}
+
 void fun_task3(void *p)
 {
 	int i;
@@ -136,16 +172,23 @@ void fun_task3(void *p)
 
 void init(void)
 {	
+	timer0_init();
 	key_init();
 	uart0_init();
 	led_init();
 	lcd_init();
 	task_init();
+	sdi_init();
 	
-	do_fork(exec(0x100000),(void *)0x1);
-	do_fork(fun_task2,(void *)0x2);	
+//	do_fork(exec(0x100000),(void *)0x1);
+//	do_fork(fun_task2,(void *)0x2);	
 	do_fork(fun_task3,(void *)0x3);
-	timer0_init();
+
+	printk("zhagnxu %d /r/n %s/r/n", 123, "string");
+
+	init_fs();
+
+	show_dir_entry();
 
 	while (1) {
 //		puts("this is the init task.\n\r");
