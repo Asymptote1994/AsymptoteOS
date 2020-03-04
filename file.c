@@ -28,7 +28,7 @@ u8 buf[FSBUF_SIZE];
 
 struct inode *root_inode;
 
-struct file fd_table[NUM_FILE_DESC];
+struct file file_table[NUM_FILE_DESC];
 struct inode inode_table[NUM_INODE];
 struct super_block super_block[NUM_SUPER_BLOCK];
 
@@ -389,29 +389,28 @@ void sync_inode(struct inode *p)
  */
 int strip_path(char *filename, const char *pathname, struct inode **ppinode)
 {
-	const char *s = pathname;
-	char *t = filename;
+	const char *p = pathname;
+	char *f = filename;
 
-	if (s == 0)
+	if (p == 0)
 		return -1;
 
-	if (*s == '/')
-		s++;
+	if (*p == '/')
+		p++;
 
 	/* check each character */
-	while (*s) {		
-		if (*s == '/')
+	while (*p) {		
+		if (*p == '/')
 			return -1;
 		
-		*t++ = *s++;
+		*f++ = *p++;
 		
 		/* if filename is too long, just truncate it */
-		if (t - filename >= MAX_FILENAME_LEN)
+		if (f - filename >= MAX_FILENAME_LEN)
 			break;
 	}
 	
-	*t = 0;
-
+	*f = 0;
 	*ppinode = root_inode;
 
 	return 0;
@@ -634,14 +633,14 @@ void new_dir_entry(struct inode *dir_inode, int inode_nr, char *filename)
 }
 
 /*
- * search_file - 
+ * search_file - 由文件路径@path查找对应的文件，并返回对应的inode号
  *
- * @path 
+ * @path: 文件路径 
  *
  */
 int search_file(const char *path)
 {
-	int a;
+	// int a;
 	int i, j;
 	
 	int dir_blk0_nr ;
@@ -654,42 +653,48 @@ int search_file(const char *path)
 	struct inode *dir_inode;
 	char filename[MAX_FILENAME_LEN];
 	
-	for(a=0; a<MAX_FILENAME_LEN; a++)
-	{
-		filename[a] = 0;
-	}
-		
-	if (strip_path(filename, path, &dir_inode) != 0)
+	// for (a = 0; a < MAX_FILENAME_LEN; a++) {
+	// 	filename[a] = 0;
+	// }
+	memset(filename, 0, sizeof(char) * MAX_FILENAME_LEN);	
+
+	/* 由path得到最终的文件名并存到filename 
+	 * 目前只支持根目录下存在一级文件，所以dir_inode直接被赋值为root_inode,
+	 * 也即根目录的inode
+	 */
+	if (strip_path(filename, path, &dir_inode))
 		return 0;
 
-	if (filename[0] == 0)	/* path: "/" */
+	/* 如果文件名为空，则返回根目录的inode号 */
+	if (filename[0] == 0)
 		return dir_inode->i_num;
-
-	/**
+	/*
 	 * Search the dir for the file.
 	 */
-	//起始扇区号
+	//根目录的起始扇区号
 	dir_blk0_nr = dir_inode->i_start_sect;
-	//占用的扇区数
+	//根目录占用的扇区数
 	nr_dir_blks = (dir_inode->i_size + SECTOR_SIZE - 1) / SECTOR_SIZE;
-	//
-	nr_dir_entries = dir_inode->i_size / DIR_ENTRY_SIZE; /**
-					       * including unused slots
-					       * (the file has been deleted
-					       * but the slot is still there)
-					       */
+	/*
+	 * 根目录目前存储的目录数量
+	 * including unused slots
+	 * (the file has been deleted
+	 * but the slot is still there)
+	 */
+	nr_dir_entries = dir_inode->i_size / DIR_ENTRY_SIZE;
 	
-	for (i = 0; i < nr_dir_blks; i++) 
-	{
-		if(sd_read_sector(buf, dir_blk0_nr + i, 1) == 0)	   //读入扇区
+	/* 遍历根目录中所有的struct dir_entry，检查其中的name项是否与所要查找的文件相同 */
+	for (i = 0; i < nr_dir_blks; i++) {
+		if (sd_read_sector(buf, dir_blk0_nr + i, 1) == 0) {
 			printk("search函数: 目录数据读入成功！\r\n"); 
-		else
+		} else {
 			printk("search函数: 目录数据读入失败！\r\n"); 	
+			return -1;
+		}
 		
 		pde = (struct dir_entry *)buf;
 		
-		for (j = 0; j < SECTOR_SIZE / DIR_ENTRY_SIZE; j++,pde++) 
-		{
+		for (j = 0; j < SECTOR_SIZE / DIR_ENTRY_SIZE; j++,pde++) {
 			if (memcmp(filename, pde->name, MAX_FILENAME_LEN) == 0)
 				return pde->inode_num;
 			if (++m > nr_dir_entries)
@@ -756,80 +761,72 @@ struct inode *create_file(const char *path, int flags)
  */
 int open(const char *path_name, int flags)
 {
-	int fd = -1;
+	int fd = -1;	//current->filp[i]中的数组下标即为fd
 	int inode_num;
 	int i;
 	struct inode *pin = NULL;
 	int imode;
-	
 	char filename[MAX_FILENAME_LEN];
-	struct inode * dir_inode;
+	struct inode *dir_inode;
 	
-	/* 在进程中寻找一个空闲的fd */
-	for (i = 0; i < NUM_FILES; i++) 
-	{
-		if (current->filp[i] == NULL) 
-		{
+	/* 
+	 * 在当前struct task_struct中的struct file *filp[FILE_NR]数组中
+	 * 寻找空闲的一项，将下标赋给fd，作为文件描述符
+	 */
+	for (i = 0; i < NUM_FILES; i++) {
+		if (current->filp[i] == NULL) {
 			fd = i;
+			// printk("fd = %d", fd);
 			break;
 		}
 	}
 	
-//	printk("fd = %d", fd);
-	
-	if ((fd < 0) || (fd >= NUM_FILES))
+	/* 已达到当前进程所能打开文件的最大数量 */
+	if ((fd < 0) || (fd >= NUM_FILES)) {
 		printk("\r\n已超过此进程能打开的文件最大值！\r\n");
+		return -1;
+	}
 
 	/* find a free slot in f_desc_table[] */
 	for (i = 0; i < NUM_FILE_DESC; i++)
-		if (fd_table[i].fd_inode_ptr == 0)
+		if (file_table[i].fd_inode_ptr == NULL)
 			break;
 		
 	if (i >= NUM_FILE_DESC)
 		printk("\r\n文件描述符已用尽！\r\n");
 
-	
+	/* 查找指定的文件并返回inode号 */
 	inode_num = search_file(path_name);
-	
-//	printk("inode_num = %d\r\n", inode_num);
+	printk("%s(): inode_num = %d\r\n", __function__, inode_num);
 	
 //	if (flags & O_CREAT) 
-	if (flags == O_CREAT) 
-	{
-		if (inode_num) 
-		{
+	if (flags == O_CREAT) {
+		if (inode_num > 0) {
 			printk("文件已存在！\r\n");
 			return -1;
-		}
-		else 
-		{
+		} else {
 			pin = create_file(path_name, flags);
 		}
-	}
-	else //if (flags == O_RDWR) 
-	{
+	} else {//if (flags == O_RDWR)
 		if (strip_path(filename, path_name, &dir_inode) != 0)
 			return -1;
 		pin = get_inode(dir_inode->i_dev, inode_num);
 	}
 	
-	if (pin) 
-	{
+	if (pin) {
 		/* connects proc with file_descriptor */
-		current->filp[fd] = &fd_table[i];
+		current->filp[fd] = &file_table[i];
 
 		/* connects file_descriptor with inode */
-		fd_table[i].fd_inode_ptr = pin;
+		file_table[i].fd_inode_ptr = pin;
 
-		fd_table[i].fd_mode = flags;
+		file_table[i].fd_mode = flags;
 		/* f_desc_table[i].fd_cnt = 1; */
-		fd_table[i].fd_pos = 0;
+		file_table[i].fd_pos = 0;
 
 		imode = pin->i_mode; //& I_TYPE_MASK;
 
-		//如果是字符设备文件
-		if (imode == I_CHAR_SPECIAL) 
-		{
+		if (imode == I_CHAR_SPECIAL) { 		//如果是字符设备文件
 //			MESSAGE driver_msg;
 //			driver_msg.type = DEV_OPEN;
 //			int dev = pin->i_start_sect;
@@ -839,18 +836,12 @@ int open(const char *path_name, int flags)
 //			send_recv(BOTH,
 //				  dd_map[MAJOR(dev)].driver_nr,
 //				  &driver_msg);
-		}
-		//如果是目录文件
-		else if (imode == I_DIRECTORY) 
-		{
+		} else if (imode == I_DIRECTORY) { 		//如果是目录文件
 			//assert(pin->i_num == ROOT_INODE);
-		}
-		else {
+		} else {
 			//assert(pin->i_mode == I_REGULAR);
 		}
-	}
-	else
-	{
+	} else {
 		return -1;
 	}
 
@@ -861,7 +852,7 @@ void init_fs(void)
 {
 	struct super_block *sb = super_block;
 
-	memset(fd_table, 0, sizeof(struct file) * NUM_FILE_DESC);
+	memset(file_table, 0, sizeof(struct file) * NUM_FILE_DESC);
 	memset(inode_table, 0, sizeof(struct inode) * NUM_INODE);
 	memset(super_block, 0, sizeof(struct super_block) * NUM_SUPER_BLOCK);
 

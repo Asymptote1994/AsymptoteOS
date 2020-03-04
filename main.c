@@ -32,7 +32,7 @@ void irq_handler(void)
 
 void clear_irq(void)
 {
-	//Ê∏Ö‰∏≠Êñ≠
+	//«Â÷–∂œ
     SRCPND = 1 << INTOFFSET;
     INTPND = INTPND;     
 }
@@ -42,7 +42,7 @@ void fs_task(void *param);
 void run_commond(char *comm)
 {
 	if (comm[0] == 'l' && comm[1] == 's') {
-		puts("helloÔºåmy boy!");
+		puts("hello£¨my boy!");
 		fs_task(NULL);
 		show_dir_entry();
 	} else if (comm[0] == 'g' && comm[1] == 'r' && comm[2] == 'e') {		
@@ -113,25 +113,25 @@ void fs_task(void *param)
 	
 	fd = open("/first", O_CREAT);
 	if (fd == -1) {
-		printk("ËøîÂõûÁöÑfd: %d\r\n", fd);
+		printk("∑µªÿµƒfd: %d\r\n", fd);
 	} else {
-		printk("Êñá‰ª∂ÂàõÂª∫ÊàêÂäüÔºåËøîÂõûÁöÑfd: %d\r\n", fd);
+		printk("Œƒº˛¥¥Ω®≥…π¶£¨∑µªÿµƒfd: %d\r\n", fd);
 		
 		n = write(fd, buf_write, strlen(buf_write));
-		printk("ÂÜôÂÖ•ÁöÑÊñá‰ª∂ÈïøÂ∫¶: %d\r\n", n);
+		printk("–¥»ÎµƒŒƒº˛≥§∂»: %d\r\n", n);
 		
 		close(fd);
 	}
 
 	fd = open("/first", O_RDWR);
 	if (fd == -1) {
-		printk("ËøîÂõûÁöÑfd: %d\r\n", fd);
+		printk("∑µªÿµƒfd: %d\r\n", fd);
 	} else {
-		printk("Êñá‰ª∂ÊâìÂºÄÊàêÂäüÔºåËøîÂõûÁöÑfd: %d\r\n", fd);
+		printk("Œƒº˛¥Úø™≥…π¶£¨∑µªÿµƒfd: %d\r\n", fd);
 		
 		n = read(fd, buf_read, strlen(buf_write));				
 		buf_read[n] = 0;
-		printk("ËØªÂá∫ÁöÑÊñá‰ª∂ÈïøÂ∫¶: %d, Êñá‰ª∂ÂÜÖÂÆπ‰∏∫: %s\r\n", n, buf_read);
+		printk("∂¡≥ˆµƒŒƒº˛≥§∂»: %d, Œƒº˛ƒ⁄»›Œ™: %s\r\n", n, buf_read);
 		
 		close(fd);
 	}			
