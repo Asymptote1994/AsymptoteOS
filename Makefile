@@ -9,12 +9,12 @@ CFLAGS = -g -Wall -O2 -nostdlib -fno-builtin -I$(shell pwd)/ -I$(shell pwd)/incl
 
 all: start.bin	task2.bin task3.bin
 
-start.bin: head.o init.o main.o sched.o fork.o mem.o nand.o lcd.o list.o uart.o file.o sd.o lib/libc.a #print.o 
+start.bin: head.o init.o main.o sched.o fork.o mem.o nand.o lcd.o list.o uart.o romfs.o sd.o lib/libc.a #print.o file.o
 	$(LD) -Tstart.lds $^ -o start.elf
 	$(OBJCOPY) -S start.elf -O binary $@
 	$(OBJJUMP) -D -m arm start.elf > start.dis
 
-task2.bin: task2.o lcd.o
+task2.bin: task2.o lcd.o uart.o
 	$(LD) -Ttask2.lds $^ -o task2.elf
 	$(OBJCOPY) -S task2.elf -O binary $@
 	$(OBJJUMP) -D -m arm task2.elf > task2.dis

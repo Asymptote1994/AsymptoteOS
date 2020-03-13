@@ -56,6 +56,7 @@ DAT 通路编程
 
 #include <sd.h>
 #include <s3c2440_regs.h>
+#include <romfs.h>
 
 #define _SD_DEBUG_
 #define SDCARD_BUFF_SIZE 512
@@ -618,6 +619,8 @@ u8 sd_read_sector(u32 *buf, u32 addr, u32 block_num)
 	SDIFSTA = SDIFSTA | (1 << 16); 		// FIFO reset
 	SDIDCON = (block_num << 0) | (2 << 12) | (1 << 14) | (SDCard.sdiWide << 16) | (1 << 17) | (1 << 19) | (2 << 22);
 
+//	printk("enter sd_read_sector(): src_block = %d, block_num = %d\r\n", addr, block_num);
+	
 	//发送读多个块指令
 	while (CMD18(addr) != 1)		
 		SDICSTA = 0xF << 9;
@@ -635,6 +638,9 @@ u8 sd_read_sector(u32 *buf, u32 addr, u32 block_num)
 		//如果接收FIFO中有数据
 		if ((status & 0x1000) == 0x1000) { 
 			*buf = SDIDAT;
+			*buf = be32_to_le32(*buf);
+
+			//printk("sd_read_sector(): *buf = %x\r\n", *buf);
 			buf++;
 			i++;
 		}
@@ -647,6 +653,7 @@ u8 sd_read_sector(u32 *buf, u32 addr, u32 block_num)
 	//发送结束指令 
 	while (CMD12() != 1)				
 		SDICSTA = 0xF << 9;
+//	printk("leave sd_read_sector(): src_block = %d, block_num = %d\r\n", addr, block_num);
 	 
 	return 0;
 }

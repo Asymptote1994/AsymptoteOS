@@ -91,7 +91,7 @@ Reset:
 	@nand_read函数需要3个参数：
 	ldr r1, =0x30000000     	@1. 目标地址=0x30000000，这是SDRAM的起始地址
 	mov r0, #0		    		@2. 源地址	= 0
-	mov r2, #(1024*50)	    	@3. 复制长度= 50KB
+	mov r2, #(1024*30)	    	@3. 复制长度= 50KB
 	bl  nand_read		    	@调用C函数nand_read
 
 @	bl copy_steppingstone_to_sdram

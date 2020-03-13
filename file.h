@@ -39,7 +39,7 @@
 #define   SECTOR_SIZE_SHIFT         9
 
 #define FILE_NR 64												/* 一个进程最多可以打开的文件数目 */
- 
+/* 
 struct super_block
 {
 	int magic;                   //文件系统标识
@@ -101,5 +101,5 @@ int write(int fd, char *buffer, int count);
 int read(int fd, char *buffer, int count);
 
 void show_dir_entry(void);
-
+*/
 #endif

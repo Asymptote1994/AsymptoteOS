@@ -4,7 +4,9 @@
 #include <fork.h>
 #include <nand.h>
 #include <lcd.h>
-#include <file.h>
+//#include <file.h>
+//#include <fs.h>
+#include <romfs.h>
 
 
 //int addr = 0x31300000;
@@ -32,56 +34,60 @@ void irq_handler(void)
 
 void clear_irq(void)
 {
-	//«Â÷–∂œ
+	//Ê∏Ö‰∏≠Êñ≠
     SRCPND = 1 << INTOFFSET;
     INTPND = INTPND;     
 }
 
-void fs_task(void *param);
+unsigned char *buffer = (unsigned char *)0x33600000;
 
-void run_commond(char *comm)
+void romfs_task(char *file_name)
 {
-	if (comm[0] == 'l' && comm[1] == 's') {
-		puts("hello£¨my boy!");
-		fs_task(NULL);
-		show_dir_entry();
-	} else if (comm[0] == 'g' && comm[1] == 'r' && comm[2] == 'e') {		
-		draw_rect(200, 100, 400, 200, 0x0000ff);
-		puts("lcd test success");
-	} else if (comm[0] == 'b' && comm[1] == 'l' && comm[2] == 'u') {		
-		draw_rect(100, 100, 200, 200, 0x00ff00);
-		puts("lcd test success");
-	} else if (comm[0] == 'b' && comm[1] == 'o' && comm[2] == 'o' && comm[3] == 't') {		
-		//load_kernel();
-	} else {
-		puts(comm);
-		puts(": command not found");
+	int i;
+//	unsigned char *b = buf;
+	struct inode node;
+	unsigned int addr;
+
+//	node=fs_type[ROMFS]->namei(fs_type[ROMFS],"number.txt");
+//	fs_type[ROMFS]->device->dout(fs_type[ROMFS]->device,buf,fs_type[ROMFS]->get_daddr(node),node->dsize);
+
+	printk("enter romfs_task()\r\n");
+
+	simple_romfs_namei(&node, NULL, file_name);
+	printk("romfs_task(): leave simple_romfs_namei\r\n");
+
+	addr = romfs_get_daddr(&node);
+
+	printk("romfs_task(): addr = %d\r\n", addr);
+
+	sd_read_sector(buffer, addr/512, node.dsize/512 + 2);
+	buffer = buffer + addr - (addr / 512) * 512;
+	printk("romfs_task(): node.dsize = %d\r\n", node.dsize);
+
+//	for(i=0;i<node.dsize;i++){
+	for(i=0;i<node.dsize;i++){
+		printk("%x ",buffer[i]);
 	}
+	printk("\r\n");
+	for(i=0;i<node.dsize;i++){
+		printk("%c",buffer[i]);
+	}
+	printk("\r\n");
+
+	printk("romfs_task(): buffer = 0x%x\r\n", buffer);
+	memcpy(0x33500000, buffer, 1500);
+	for(i=0;i<20;i++){
+		printk("%x ",((unsigned char *)0x33500000)[i]);
+	}
+	printk("\r\n");
+
 }
 
-void fun_task1(void *p)
-{
-	while (1) {
-//		puts("this is the 1st task.\n\r");
-
-		GPFDAT = ~(1 << 5);
-		draw_rect(80, 80, 120, 120, 0x00ff00);
-		delay();
-		
-		GPFDAT = 0xff;
-		draw_rect(80, 80, 120, 120, 0xffffff);
-		delay();
-	}
-}
-
-void fun_task3(void *p);
-
-void fun_task2(void *p)
+void lcd_task(void *p)
 {
 	int flag = 0;	
 
 	list_init((&wait_queue_head));
-//	do_fork(fun_task3,(void *)0x3);
 
 	while (1) {
 //		puts("this is the 2nd task.\n\r");
@@ -100,7 +106,7 @@ void fun_task2(void *p)
 		}
 	}
 }
-
+/*
 void fs_task(void *param)
 {
 	int n = 0;
@@ -113,82 +119,98 @@ void fs_task(void *param)
 	
 	fd = open("/first", O_CREAT);
 	if (fd == -1) {
-		printk("∑µªÿµƒfd: %d\r\n", fd);
+		printk("ËøîÂõûÁöÑfd: %d\r\n", fd);
 	} else {
-		printk("Œƒº˛¥¥Ω®≥…π¶£¨∑µªÿµƒfd: %d\r\n", fd);
+		printk("Êñá‰ª∂ÂàõÂª∫ÊàêÂäüÔºåËøîÂõûÁöÑfd: %d\r\n", fd);
 		
 		n = write(fd, buf_write, strlen(buf_write));
-		printk("–¥»ÎµƒŒƒº˛≥§∂»: %d\r\n", n);
+		printk("ÂÜôÂÖ•ÁöÑÊñá‰ª∂ÈïøÂ∫¶: %d\r\n", n);
 		
 		close(fd);
 	}
 
 	fd = open("/first", O_RDWR);
 	if (fd == -1) {
-		printk("∑µªÿµƒfd: %d\r\n", fd);
+		printk("ËøîÂõûÁöÑfd: %d\r\n", fd);
 	} else {
-		printk("Œƒº˛¥Úø™≥…π¶£¨∑µªÿµƒfd: %d\r\n", fd);
+		printk("Êñá‰ª∂ÊâìÂºÄÊàêÂäüÔºåËøîÂõûÁöÑfd: %d\r\n", fd);
 		
 		n = read(fd, buf_read, strlen(buf_write));				
 		buf_read[n] = 0;
-		printk("∂¡≥ˆµƒŒƒº˛≥§∂»: %d, Œƒº˛ƒ⁄»›Œ™: %s\r\n", n, buf_read);
+		printk("ËØªÂá∫ÁöÑÊñá‰ª∂ÈïøÂ∫¶: %d, Êñá‰ª∂ÂÜÖÂÆπ‰∏∫: %s\r\n", n, buf_read);
 		
 		close(fd);
 	}			
 }
+*/
 
-void fun_task3(void *p)
+int execv(unsigned int start){
+	asm volatile(
+		"mov pc,r0\n\t"
+	);
+	
+	return 0;
+}
+
+void run_commond(char *command)
+{
+	if (strcmp(command, "") != 0) {
+//		fs_task(NULL);
+//		show_dir_entry();
+
+		romfs_task(command);
+	
+		//execv(0x33500000);
+		do_fork(0x33500000,(void *)0x1);
+	} else if (strcmp(command, "") == 0) {
+		//printk("root@zhangxu:/# ");
+	} else {
+		printk("%s: command not found", command);
+	}
+}
+
+void shell(void *p)
 {
 	int i;
 	char c;
-	char comm[30];
+	char command[30];
 	
-	putc('\r');
-	putc('\n');
-	puts("my_bootloader# ");
+	do {
+		printk("\r\nroot@zhangxu:/# ");
 
-	while (1) {
 		i = 0;
 	
 		do {
 			c = getc();
 			if (c != '\r') {
 				putc(c);
-				comm[i++] = c;
-			}
-				
+				command[i++] = c;
+			}	
 		} while (c != '\r');
-		comm[i] = '\0';
-			
-		putc('\r');
-		putc('\n');
-		run_commond(comm);
 
-		putc('\r');
-		putc('\n');
-		puts("my_bootloader# ");		
-	}
+		command[i] = '\0';
+			
+		printk("\r\n");
+		run_commond(command);
+	} while (1);
 }
 
 void init(void)
 {	
-	timer0_init();
 	key_init();
 	uart0_init();
 	led_init();
 	lcd_init();
 	task_init();
 	sdi_init();
+	timer0_init();
 	
 //	do_fork(exec(0x100000),(void *)0x1);
 //	do_fork(fun_task2,(void *)0x2);	
-	do_fork(fun_task3,(void *)0x3);
+	do_fork(shell,(void *)0x3);
 
-	printk("zhagnxu %d /r/n %s/r/n", 123, "string");
-
-	init_fs();
-
-	show_dir_entry();
+//	init_fs();
+//	show_dir_entry();
 
 	while (1) {
 //		puts("this is the init task.\n\r");
