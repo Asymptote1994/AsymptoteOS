@@ -5,6 +5,7 @@
 *.o
 *.ko
 *.obj
+*.bin
 *.elf
 
 # Linker output
@@ -53,3 +54,5 @@ dkms.conf
 
 #vscode configuration file
 *.json
+
+*.dis
