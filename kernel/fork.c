@@ -44,27 +44,29 @@ unsigned int get_cpsr(void)
 
 int do_fork(void (*fn)(void *), void *args)
 {
-	struct task_struct *tsk,*tmp;
+	static int pid = 0;
+	struct task_struct *tsk, *tmp;
 
-	/* 分配一个4KB大小的内存地址，用以存放进程堆栈和进程描述符struct task_struct */
+	/* ???????4KB??С???????????????????????????????struct task_struct */
 	if((tsk = get_task_struct_addr()) == (void *)0)
 		return -1;
 
 	memset(tsk, 0, sizeof(struct task_struct));
 
-	/* 让sp指向上述分配的地址的高地址顶端 */
+	/* ??sp??????????????????????? */
 	tsk->sp = ((unsigned int)(tsk) + TASK_SIZE);
-	/* 为sp赋予寄存器初值 */
+	/* ?sp??????????? */
 	DO_INIT_SP(tsk->sp, fn, args, 0, 0x1f&get_cpsr(), 0);
 
 	tsk->state = 0;
+	tsk->pid = pid++;
 	current->state = 0;
 
 	disable_schedule();
 	list_add_tail(&(tsk->list), &(current->list));
 	enable_schedule();
 
-	return 0;
+	return tsk->pid;
 }
 
 unsigned char *exec(unsigned long nand_addr)
@@ -74,5 +76,14 @@ unsigned char *exec(unsigned long nand_addr)
 	nand_read(nand_addr, addr, PAGE_SIZE);
 	
 	return addr;
+}
+
+void do_exit(void)
+{
+	disable_schedule();
+	list_del(&(current->list));
+	enable_schedule();
+	
+	while (1);
 }
 

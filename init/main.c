@@ -8,8 +8,6 @@
 //#include <fs.h>
 #include <romfs.h>
 
-
-//int addr = 0x31300000;
 //struct list_head *wait_queue_head = (struct list_head *)0x31300000;
 struct list_head wait_queue_head;
 
@@ -17,19 +15,10 @@ void irq_handler(void)
 {
 	struct list_head *wq = &wait_queue_head;
 	GPFDAT = 0;
-//	wake_up(wq);
-
+	wake_up(wq);
 
 	list_entry(wq->next, struct task_struct, list)->state = 0;
 	list_add(wq->next, &(((struct task_struct *)0x30300000)->list));
-
-	
-	delay();
-	draw_rect(200, 200, 250, 250, 0xffff00);
-	delay();
-	
-	draw_rect(200, 200, 250, 250, 0xffffff);
-	delay();
 }
 
 void clear_irq(void)
@@ -39,6 +28,17 @@ void clear_irq(void)
     INTPND = INTPND;     
 }
 
+void print_task(void *p)
+{
+	int i;
+
+	for (i = 0; i < 3; i++) {
+		printk("this is the print task, arg = %d\n\r", (int)p);
+		delay();
+	}
+	do_exit();
+}
+
 void lcd_task(void *p)
 {
 	int flag = 0;	
@@ -46,7 +46,7 @@ void lcd_task(void *p)
 	list_init((&wait_queue_head));
 
 	while (1) {
-//		puts("this is the 2nd task.\n\r");
+		printk("this is the lcd task.\n\r");
 	
 		GPFDAT = ~(1 << 6);
 		draw_rect(150, 150, 190, 190, 0xff0000);
@@ -104,20 +104,47 @@ void fs_task(char *path_name)
 
 	close(fd);
 	printk("leave fs_task()\r\n");
+	do_exit();
 }
 
-int execv(unsigned int start)
+int read_file(char *path_name)
 {
-	int i;
-	
-	printk("read(): buf_read = 0x%x\r\n", buf_read);
-	memcpy(start, buf_read, 1500);
-	for(i=0;i<20;i++){
-		printk("%x ",((unsigned char *)start)[i]);
+	int i, n = 0;
+	int fd = -5;
+			
+	fd = open(path_name, O_CREAT);
+	if (fd == -1) {
+		printk("open %s failed!\r\n", path_name);
+		return -1;
+	} else {
+		printk("open %s success, fd = %d\r\n", fd, path_name);
 	}
+	
+	n = read(fd, buf_read, strlen(""));				
+
+	printk("file length: %d\r\n", n);	
+	for (i = 0; i < n; i++)
+		printk("%c",buf_read[i]);
 	printk("\r\n");
 
-	do_fork(start,(void *)0x1);
+	close(fd);
+	return n;
+}
+
+int execv(char *path_name)
+{
+	int i, size;
+	
+	size = read_file(path_name);
+
+	printk("read(): buf_read = 0x%x\r\n", buf_read);
+	memcpy(0x33500000, buf_read, size);
+//	for(i=0;i<20;i++){
+//		printk("%x ",((unsigned char *)0x33500000)[i]);
+//	}
+//	printk("\r\n");
+
+	do_fork(0x33500000,(void *)0x1);
 
 	return 0;
 }
@@ -126,18 +153,19 @@ void run_commond(char *command)
 {
 	if (strcmp(command, "ls") == 0) {
 		show_dir_entry();	
-	} else if (strcmp(command, "zhangxu") == 0) {
-		fs_task(command);
+	} else if (strcmp(command, "zhangxu") == 0 || strcmp(command, "Makefile") == 0) {
+		do_fork(fs_task, (void *)command);
+//		fs_task(command);
 	} else if (strcmp(command, "task2.bin") == 0) {
-		fs_task(command);
-		execv(0x33500000);
+		execv(command);
+	} else if (strcmp(command, "wakeup") == 0) {
+		wake_up(&wait_queue_head);
 	} else if (strcmp(command, "") == 0) {
 
 	} else {
 		printk("%s: command not found\r\n", command);
 	}
 }
-
 
 void shell(void *p)
 {
@@ -167,6 +195,8 @@ void shell(void *p)
 
 void init(void)
 {	
+	int pid;
+
 	key_init();
 	uart0_init();
 	led_init();
@@ -175,8 +205,9 @@ void init(void)
 	sdi_init();
 	timer0_init();
 	
-//	do_fork(exec(0x100000),(void *)0x1);
-	do_fork(shell,(void *)0x3);
+//	do_fork(exec(0x100000), (void *)0x1);
+	pid = do_fork(shell, (void *)0x3);
+//	do_fork(lcd_task, (void *)0x3);
 
 //	init_fs();
 //	show_dir_entry();
