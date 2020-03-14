@@ -35,7 +35,7 @@ struct inode{
 	unsigned int flags;
 //	size_t dsize;			//file data size
 	unsigned int dsize;			//file data size
-	unsigned int daddr;				//real data bias inside the block device
+	unsigned int daddr;				//文件头信息在存储设备中的位置
 	struct super_block *super;
 	
 };

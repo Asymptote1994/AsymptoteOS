@@ -39,50 +39,6 @@ void clear_irq(void)
     INTPND = INTPND;     
 }
 
-unsigned char *buffer = (unsigned char *)0x33600000;
-
-void romfs_task(char *file_name)
-{
-	int i;
-//	unsigned char *b = buf;
-	struct inode node;
-	unsigned int addr;
-
-//	node=fs_type[ROMFS]->namei(fs_type[ROMFS],"number.txt");
-//	fs_type[ROMFS]->device->dout(fs_type[ROMFS]->device,buf,fs_type[ROMFS]->get_daddr(node),node->dsize);
-
-	printk("enter romfs_task()\r\n");
-
-	simple_romfs_namei(&node, NULL, file_name);
-	printk("romfs_task(): leave simple_romfs_namei\r\n");
-
-	addr = romfs_get_daddr(&node);
-
-	printk("romfs_task(): addr = %d\r\n", addr);
-
-	sd_read_sector(buffer, addr/512, node.dsize/512 + 2);
-	buffer = buffer + addr - (addr / 512) * 512;
-	printk("romfs_task(): node.dsize = %d\r\n", node.dsize);
-
-//	for(i=0;i<node.dsize;i++){
-	for(i=0;i<node.dsize;i++){
-		printk("%x ",buffer[i]);
-	}
-	printk("\r\n");
-	for(i=0;i<node.dsize;i++){
-		printk("%c",buffer[i]);
-	}
-	printk("\r\n");
-
-	printk("romfs_task(): buffer = 0x%x\r\n", buffer);
-	memcpy(0x33500000, buffer, 1500);
-	for(i=0;i<20;i++){
-		printk("%x ",((unsigned char *)0x33500000)[i]);
-	}
-	printk("\r\n");
-
-}
-
 void lcd_task(void *p)
 {
 	int flag = 0;	
@@ -106,66 +62,79 @@ void lcd_task(void *p)
 		}
 	}
 }
-/*
-void fs_task(void *param)
+
+char *buf_read = (char *)0x33f00000;
+
+void fs_task(char *path_name)
 {
-	int n = 0;
+	int i, n = 0;
 	int fd = -5;
-//	char key;
 	char buf_write[] = "    But a man is not made for defeat. A man can be destroyed but not defeated.";
-	char buf_read[] = {0};
+//	char buf_read[] = {0};
 		
-	printk("reading data....r\n");
+	printk("reading data....\r\n");
 	
-	fd = open("/first", O_CREAT);
+	fd = open(path_name, O_CREAT);
 	if (fd == -1) {
-		printk("返回的fd: %d\r\n", fd);
+		printk("open %s failed!\r\n", path_name);
+		return -1;
 	} else {
-		printk("文件创建成功，返回的fd: %d\r\n", fd);
-		
-		n = write(fd, buf_write, strlen(buf_write));
-		printk("写入的文件长度: %d\r\n", n);
-		
-		close(fd);
+		printk("open %s success, fd = %d\r\n", fd, path_name);
 	}
 
-	fd = open("/first", O_RDWR);
-	if (fd == -1) {
-		printk("返回的fd: %d\r\n", fd);
-	} else {
-		printk("文件打开成功，返回的fd: %d\r\n", fd);
-		
-		n = read(fd, buf_read, strlen(buf_write));				
-		buf_read[n] = 0;
-		printk("读出的文件长度: %d, 文件内容为: %s\r\n", n, buf_read);
-		
-		close(fd);
-	}			
-}
-*/
-
-int execv(unsigned int start){
-	asm volatile(
-		"mov pc,r0\n\t"
-	);
+	// n = write(fd, buf_write, strlen(buf_write));
+	// printk("写入的文件长度: %d\r\n", n);
 	
+	// close(fd);
+
+	// fd = open("/first", O_RDWR);
+	// if (fd == -1) {
+	// 	printk("open failed!\r\n");
+	// 	return -1;
+	// }
+	
+	// printk("文件打开成功，返回的fd: %d\r\n", fd);
+	
+	n = read(fd, buf_read, strlen(buf_write));				
+	//buffer[n] = 0;
+	printk("file length: %d\r\n", n);	
+	for (i = 0; i < n; i++)
+		printk("%c",buf_read[i]);
+	printk("\r\n");
+
+	close(fd);
+	printk("leave fs_task()\r\n");
+}
+
+int execv(unsigned int start)
+{
+	int i;
+	
+	printk("read(): buf_read = 0x%x\r\n", buf_read);
+	memcpy(start, buf_read, 1500);
+	for(i=0;i<20;i++){
+		printk("%x ",((unsigned char *)start)[i]);
+	}
+	printk("\r\n");
+
+	do_fork(start,(void *)0x1);
+
 	return 0;
 }
 
 void run_commond(char *command)
 {
-	if (strcmp(command, "") != 0) {
-//		fs_task(NULL);
-//		show_dir_entry();
-
-		romfs_task(command);
-	
-		//execv(0x33500000);
-		do_fork(0x33500000,(void *)0x1);
+	if (strcmp(command, "ls") == 0) {
+		show_dir_entry();	
+	} else if (strcmp(command, "zhangxu") == 0) {
+		fs_task(command);
+	} else if (strcmp(command, "task2.bin") == 0) {
+		fs_task(command);
+		execv(0x33500000);
 	} else if (strcmp(command, "") == 0) {
-		//printk("root@zhangxu:/# ");
+
 	} else {
-		printk("%s: command not found", command);
+		printk("%s: command not found\r\n", command);
 	}
 }
 
@@ -176,7 +145,7 @@ void shell(void *p)
 	char command[30];
 	
 	do {
-		printk("\r\nroot@zhangxu:/# ");
+		printk("root@zhangxu:/# ");
 
 		i = 0;
 	
@@ -206,15 +175,14 @@ void init(void)
 	timer0_init();
 	
 //	do_fork(exec(0x100000),(void *)0x1);
-//	do_fork(fun_task2,(void *)0x2);	
 	do_fork(shell,(void *)0x3);
 
 //	init_fs();
 //	show_dir_entry();
 
-	while (1) {
-//		puts("this is the init task.\n\r");
+	puts("this is the init task.\n\r");
 
+	while (1) {
 		GPFDAT = ~(1 << 4);
 		draw_rect(10, 10, 50, 50, 0x0000ff);
 		delay();
