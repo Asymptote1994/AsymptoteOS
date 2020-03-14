@@ -1,6 +1,6 @@
 CC = arm-linux-gcc
 LD = arm-linux-ld
-CFLAGS = -g -Wall -O2 -I$(shell pwd)/../include
+CFLAGS = -g -Wall -O2 -I$(shell pwd)/
 
 objs := div64.o lib1funcs.o ctype.o muldi3.o printf.o string.o vsprintf.o
 

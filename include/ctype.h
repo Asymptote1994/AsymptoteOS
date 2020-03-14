@@ -1,3 +1,8 @@
+#ifndef __CTYPE_H__
+#define __CTYPE_H__
+
+typedef unsigned int size_t;
+#define NULL  ((void *)0)
 /*
  * NOTE! This ctype does not handle EOF like the standard C
  * library is required to.
@@ -47,3 +52,7 @@ static inline unsigned char __toupper(unsigned char c)
 
 #define tolower(c) __tolower(c)
 #define toupper(c) __toupper(c)
+
+
+#endif
+
