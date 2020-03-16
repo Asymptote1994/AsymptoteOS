@@ -8,6 +8,8 @@
 //#include <fs.h>
 #include <romfs.h>
 
+#define NULL ((void *)0)
+
 //struct list_head *wait_queue_head = (struct list_head *)0x31300000;
 struct list_head wait_queue_head;
 
@@ -123,19 +125,19 @@ int read_file(char *path_name)
 	n = read(fd, buf_read, strlen(""));				
 
 	printk("file length: %d\r\n", n);	
-	for (i = 0; i < n; i++)
-		printk("%c",buf_read[i]);
-	printk("\r\n");
+//	for (i = 0; i < n; i++)
+//		printk("%c",buf_read[i]);
+//	printk("\r\n");
 
 	close(fd);
 	return n;
 }
 
-int execv(char *path_name)
+int execv(char *exec_file_name, char *args)
 {
 	int i, size;
 	
-	size = read_file(path_name);
+	size = read_file(exec_file_name);
 
 	printk("read(): buf_read = 0x%x\r\n", buf_read);
 	memcpy(0x33500000, buf_read, size);
@@ -144,7 +146,7 @@ int execv(char *path_name)
 //	}
 //	printk("\r\n");
 
-	do_fork(0x33500000,(void *)0x1);
+	do_fork(0x33500000,(void *)"zhangxu");
 
 	return 0;
 }
@@ -155,9 +157,8 @@ void run_commond(char *command)
 		show_dir_entry();	
 	} else if (strcmp(command, "zhangxu") == 0 || strcmp(command, "Makefile") == 0) {
 		do_fork(fs_task, (void *)command);
-//		fs_task(command);
-	} else if (strcmp(command, "task2.bin") == 0) {
-		execv(command);
+	} else if (strcmp(command, "cat.bin") == 0) {
+		execv(command, NULL);
 	} else if (strcmp(command, "wakeup") == 0) {
 		wake_up(&wait_queue_head);
 	} else if (strcmp(command, "") == 0) {
@@ -205,14 +206,12 @@ void init(void)
 	sdi_init();
 	timer0_init();
 	
-//	do_fork(exec(0x100000), (void *)0x1);
 	pid = do_fork(shell, (void *)0x3);
-//	do_fork(lcd_task, (void *)0x3);
+	do_fork(lcd_task, (void *)0x3);
 
 //	init_fs();
-//	show_dir_entry();
 
-	puts("this is the init task.\n\r");
+	printk("this is the init task.\n\r");
 
 	while (1) {
 		GPFDAT = ~(1 << 4);

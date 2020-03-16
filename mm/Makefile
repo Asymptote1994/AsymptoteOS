@@ -7,7 +7,7 @@ CFLAGS = -g -Wall -O2 -nostdlib -fno-builtin -I $(shell pwd)/../include
 
 .PHONY: all
 
-all: mem.o
+all: simple_mem.o
 
 %.o:%.c
 	$(CC) $(CFLAGS) -c $< -o $@

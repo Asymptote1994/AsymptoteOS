@@ -73,7 +73,7 @@ unsigned char *exec(unsigned long nand_addr)
 {
 	unsigned char *addr = (unsigned char *)get_free_page();
 
-	nand_read(nand_addr, addr, PAGE_SIZE);
+//	nand_read(nand_addr, addr, PAGE_SIZE);
 	
 	return addr;
 }

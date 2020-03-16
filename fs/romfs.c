@@ -1,11 +1,10 @@
 #include <fs.h>
-//#include "storage.h"
 #include <string.h>
 #include <romfs.h>
 #include <sd.h>
 #include <sched.h>
 
-//#define NULL (void *)0
+#define NULL ((void *)0)
 
 struct file
 {

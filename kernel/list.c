@@ -69,6 +69,25 @@ void list_add_tail(struct list_head *new, struct list_head *head)
 	__list_add(new, head->prev, head);
 }
 
+void list_remove_chain(struct list_head *ch,struct list_head *ct){
+	ch->prev->next=ct->next;
+	ct->next->prev=ch->prev;
+}
+
+void list_add_chain(struct list_head *ch,struct list_head *ct,struct list_head *head){
+		ch->prev=head;
+		ct->next=head->next;
+		head->next->prev=ct;
+		head->next=ch;
+}
+
+void list_add_chain_tail(struct list_head *ch,struct list_head *ct,struct list_head *head){
+		ch->prev=head->prev;
+		head->prev->next=ch;
+		head->prev=ct;
+		ct->next=head;
+}
+
 /*
  * 此处仅作理解用，不进行使用
  */

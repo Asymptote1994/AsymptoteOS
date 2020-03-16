@@ -21,7 +21,7 @@ BUILTIN += drivers/lcd.o  \
 BUILTIN += fs/romfs.o
 #file.o
 
-BUILTIN += mm/mem.o
+BUILTIN += mm/simple_mem.o
 
 .PHONY:
 

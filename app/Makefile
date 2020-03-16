@@ -3,26 +3,31 @@ LD = arm-linux-ld
 OBJCOPY = arm-linux-objcopy
 OBJJUMP = arm-linux-objdump
 
-CFLAGS = -g -Wall -O2 -nostdlib -fno-builtin -I$(shell pwd)/ -I$(shell pwd)/include
+CFLAGS = -g -Wall -O2 -nostdlib -fno-builtin -I$(shell pwd)/../include
 
-.PHONY: 
+BUILTIN = ../kernel/sched.o \
+		  ../kernel/fork.o  \
+		  ../kernel/list.o
 
-all: start.bin	task2.bin task3.bin
+BUILTIN += ../drivers/uart.o \
+		   ../drivers/sd.o
 
-start.bin: head.o init.o main.o sched.o fork.o mem.o nand.o lcd.o list.o uart.o romfs.o sd.o lib/libc.a #print.o file.o
-	$(LD) -Tstart.lds $^ -o start.elf
-	$(OBJCOPY) -S start.elf -O binary $@
-	$(OBJJUMP) -D -m arm start.elf > start.dis
+BUILTIN += ../fs/romfs.o
+#file.o
 
-task2.bin: task2.o lcd.o uart.o
-	$(LD) -Ttask2.lds $^ -o task2.elf
-	$(OBJCOPY) -S task2.elf -O binary $@
-	$(OBJJUMP) -D -m arm task2.elf > task2.dis
+BUILTIN += ../mm/simple_mem.o
 
-task3.bin: task3.o lcd.o
-	$(LD) -Ttask3.lds $^ -o task3.elf
-	$(OBJCOPY) -S task3.elf -O binary $@
-	$(OBJJUMP) -D -m arm task3.elf > task3.dis
+.PHONY:
+
+cat.bin: cat.o $(BUILTIN) ../lib/libc.a 
+	make -C ../kernel/
+	make -C ../fs/
+	make -C ../mm/
+	make -C ../drivers/
+	
+	$(LD) -T cat.lds $^ -o cat.elf
+	$(OBJCOPY) -S cat.elf -O binary $@
+	$(OBJJUMP) -D -m arm cat.elf > cat.dis
 
 %.o:%.c
 	$(CC) $(CFLAGS) -c $< -o $@
