@@ -205,6 +205,7 @@ void init(void)
 	task_init();
 	sdi_init();
 	timer0_init();
+	vfs_init();
 	
 	pid = do_fork(shell, (void *)0x3);
 	do_fork(lcd_task, (void *)0x3);

@@ -6,39 +6,6 @@
 
 #define NULL ((void *)0)
 
-struct file
-{
-	int fd_mode;                        //?????????: ????/??/��
-	int fd_pos;                         //??????????��??
-	struct inode *fd_inode_ptr;         //???inode???
-};
-
-struct romfs_super_block {
-	unsigned int word0;
-	unsigned int word1;
-	unsigned int size;
-	unsigned int checksum;
-	char name[0];
-};
-
-struct romfs_inode {
-	unsigned int next;
-	unsigned int spec;
-	unsigned int size;
-	unsigned int checksum;
-	char name[0];
-};
-
-#define ROMFS_MAX_FILE_NAME	(128)
-#define ROMFS_NAME_ALIGN_SIZE	(16)
-#define ROMFS_SUPER_UP_MARGIN	(16)
-#define ROMFS_NAME_MASK	(~(ROMFS_NAME_ALIGN_SIZE-1))
-#define ROMFS_NEXT_MASK 0xfffffff0
-
-#define romfs_get_first_file_header(p)	((((strlen(((struct romfs_inode *)(p))->name)+ROMFS_NAME_ALIGN_SIZE+ROMFS_SUPER_UP_MARGIN))&ROMFS_NAME_MASK)<<24)
-#define romfs_get_file_data_offset(p,num)	(((((num)+ROMFS_NAME_ALIGN_SIZE)&ROMFS_NAME_MASK)+ROMFS_SUPER_UP_MARGIN+(p)))
-
-
 static char *bmap(char *tmp,char *dir){
 	unsigned int n;
 	char *p=strchr(dir,'/');
@@ -221,7 +188,7 @@ ERR_OUT_NULL:
 struct inode open_romfs_inode;
 struct file romfs_file;
 
-int open(const char *path_name, int flags)
+int romfs_open(const char *path_name, int flags)
 {
 	int i, fd = -1;
 		
@@ -233,7 +200,7 @@ int open(const char *path_name, int flags)
 		}
 	}
 
-	/* 通过文件路径名称得到inode结构�?*/
+	/* 通过文件路径名称得到inode结构�?*/
 	simple_romfs_namei(&open_romfs_inode, NULL, path_name);
 
 	current->filp[fd] = &romfs_file;
@@ -245,7 +212,7 @@ int open(const char *path_name, int flags)
 	return fd;
 }
 
-int read(int fd, char *buffer, int count)
+int romfs_read(int fd, char *buffer, int count)
 {
 	int i;
 	unsigned int file_data_addr;
@@ -281,7 +248,7 @@ int read(int fd, char *buffer, int count)
 	return pinode->dsize;
 }
 
-int close(int fd)
+int romfs_close(int fd)
 {
 	current->filp[fd]->fd_inode_ptr = 0;
 	current->filp[fd] = 0;
@@ -350,16 +317,34 @@ ERR_OUT_NULL:
 	return NULL;
 }
 
-//struct super_block romfs_super_block={
-//	.namei=simple_romfs_namei,
-//	.get_daddr=romfs_get_daddr,
-//	.name="romfs",
-//};
+void romfs_mount()
+{
 
+}
+struct file_operations romfs_fops {
+	.open = romfs_open,
+	.read = romfs_read,
+	.release = romfs_close,
+}
 
-//int romfs_init(void){
-//	int ret;
-//	ret=register_file_system(&romfs_super_block,ROMFS);
-//	romfs_super_block.device=storage[RAMDISK];
-//	return ret;
-//}
+// struct super_block romfs_super_block = {
+// 	.namei = simple_romfs_namei,
+// 	.get_daddr = romfs_get_daddr,
+// 	.name = "romfs",
+// };
+
+static struct file_system_type romfs_fs_type = {
+	.name		= "romfs",
+	.mount		= romfs_mount,
+	.fops 		= romfs_fops,
+};
+
+int romfs_init(void)
+{
+	int ret;
+	
+	ret = register_file_system(&romfs_fs_type);
+	// romfs_super_block.device = storage[RAMDISK];
+	
+	return ret;
+}

@@ -1,26 +1,5 @@
-/*
-fs.h:
-Copyright (C) 2009  david leels <davidontech@gmail.com>
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see http://www.gnu.org/licenses/.
-*/
-
 #ifndef FS_H__
 #define FS_H__
-
-
-//#include "storage.h"
 
 #define MAX_SUPER_BLOCK	(8)
 
@@ -28,19 +7,54 @@ along with this program.  If not, see http://www.gnu.org/licenses/.
 
 //struct super_block;
 
+struct file_operations {
+	// int (*read) (struct file *, char __user *, size_t, loff_t *);
+	// int (*write) (struct file *, const char __user *, size_t, loff_t *);
+	// int (*open) (struct inode *, struct file *);
+	// int (*release) (struct inode *, struct file *);
+	int (*read) (int, char *, int);
+	int (*write) (int, char *, int);
+	int (*open) (const char *, int);
+	int (*release) (int);
+};
+
+struct file
+{
+	int fd_mode;                        //文件访问方式: 创建/读/写
+	int fd_pos;                         //文件当前访问位置
+	struct inode *fd_inode_ptr;         //文件inode指针
+};
 
 struct inode{
 //	char *name;
 	char name[50];
 	unsigned int flags;
-//	size_t dsize;			//file data size
 	unsigned int dsize;			//file data size
 	unsigned int daddr;				//文件头信息在存储设备中的位置
 	struct super_block *super;
-	
 };
 
 struct super_block{
+	int magic;                   //文件系统标识
+	int total_inodes;            //文件系统总inode数
+	unsigned int total_sects;    //文件系统总扇区数
+		
+	int size_inode_sects;        //inode占用的扇区数
+	int size_imap_sects;         //inode位图占用的扇区数
+	int size_smap_sects;		 //sector位图占用的扇区数
+	
+	int num_root_inode;          //根目录对应的inode号    
+	int num_1st_sect;            //第一个数据扇区的扇区号    
+	int inode_size;              //一个inode结构体有多少字节
+//	int inode_isize_off;
+//	int inode_start_off;
+	int dir_entry_size;          //文件系统允许的总文件数
+//	int dir_ent_inode_off;
+//	int dir_ent_fname_off;
+	
+	//以下的只会在内存中存在
+	int sb_dev;
+
 	struct inode *(*namei)(struct super_block *super,char *p);
 	unsigned int (*get_daddr)(struct inode *);
 	
@@ -48,7 +62,15 @@ struct super_block{
 	char *name;
 };
 
-extern struct super_block *fs_type[];
+struct file_system_type {
+	const char *name;
+	const struct file_operations *fops;
+	struct dentry *(*mount) (struct file_system_type *, int,
+		       const char *, void *);
+	struct list_head next;
+};
+
+// extern struct super_block *fs_type[];
 
 #endif
 

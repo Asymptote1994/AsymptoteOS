@@ -83,14 +83,6 @@ struct dir_entry
 	char name[MAX_FILENAME_LEN];         //文件名称
 };
 
-struct file
-{
-	int fd_mode;                        //文件访问方式: 创建/读/写
-	int fd_pos;                         //文件当前访问位置
-	struct inode *fd_inode_ptr;         //文件inode指针
-};
-
-
 void create_fs(void);
 void init_fs(void);
 

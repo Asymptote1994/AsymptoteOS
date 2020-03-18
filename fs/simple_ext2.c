@@ -18,7 +18,7 @@
 #include <file.h>
 #include <sched.h>
 #include <sd.h>
-#include <print.h>
+#include <fs.h>
 
 #define u32 unsigned int
 #define u16 unsigned short
@@ -749,12 +749,12 @@ struct inode *create_file(const char *path, int flags)
 
 
 /*
- * open - 
+ * simple_ext2_open - 
  *
  * @path 
  *
  */
-int open(const char *path_name, int flags)
+int simple_ext2_open(const char *path_name, int flags)
 {
 	int fd = -1;
 	int inode_num;
@@ -901,7 +901,7 @@ void init_fs(void)
 	printk("root_inode->i_total_sects: %d\r\n", root_inode->i_total_sects);
 }
 
-int close(int fd)
+int simple_ext2_close(int fd)
 {
 	put_inode(current->filp[fd]->fd_inode_ptr);
 	current->filp[fd]->fd_inode_ptr = 0;
@@ -1046,12 +1046,12 @@ int do_rdwt(int fd, void *buffer, int count, int is_read_write)   //1:¶Á    0:Ð´
 	}
 }
 
-int write(int fd, char *buffer, int count)
+int simple_ext2_write(int fd, char *buffer, int count)
 {
 	return do_rdwt(fd, buffer, count, 0); 
 }
 
-int read(int fd, char *buffer, int count)
+int simple_ext2_read(int fd, char *buffer, int count)
 {
 	return do_rdwt(fd, buffer, count, 1); 
 }
@@ -1077,5 +1077,33 @@ void show_dir_entry(void)
 	}
 }
 
+struct file_operations simple_ext2_fops {
+	.open = simple_ext2_open,
+	.read = simple_ext2_read,
+	.write = simple_ext2_write,
+	.release = simple_ext2_close,
+};
+
+// struct super_block simple_ext2_super_block = {
+// 	.namei = simple_simple_ext2_namei,
+// 	.get_daddr = simple_ext2_get_daddr,
+// 	.name = "simple_ext2",
+// };
+
+static struct file_system_type simple_ext2_fs_type = {
+	.name		= "simple_ext2",
+	.mount		= simple_ext2_mount,
+	.fops		= simple_ext2_fops,
+};
+
+int simple_ext2_init(void)
+{
+	int ret;
+	
+	ret = register_filesystem(&simple_ext2_fs_type);
+	// simple_ext2_super_block.device = storage[RAMDISK];
+	
+	return ret;
+}
 
 

@@ -30,5 +30,9 @@ int list_empty(struct list_head *head);
 #define list_for_each(pos, head) \
 	for (pos = (head)->next; pos != (head); pos = pos->next)
 
-#endif
+#define list_for_each_entry(pos, head, member)                \
+    for (pos = list_entry((head)->next, typeof(*pos), member);    \
+         &pos->member != (head);     \
+         pos = list_entry(pos->member.next, typeof(*pos), member))
 
+#endif
