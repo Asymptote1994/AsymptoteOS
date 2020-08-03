@@ -1,30 +1,31 @@
-#ifndef FILE_H
-#define FILE_H
+#ifndef __SIMPLE_EXT2_H__
+#define __SIMPLE_EXT2_H__
 
-#define   TOTAL_SECTS               8388608                     //Êý¾Ý³¤¶ÈÓÐÎÊÌâ,Êý¾ÝÎª: MAX_DRIVE_SIZE / SECTOR_SIZE
+#include <fs.h>
+
+#define   TOTAL_SECTS               8388608                     //ï¿½ï¿½ï¿½Ý³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½Îª: MAX_DRIVE_SIZE / SECTOR_SIZE
 
 #define   MAGIC_V1                	777
 
-#define   MAX_FILENAME_LEN         	12                          //ÎÄ¼þÃûµÄ×î´ó³¤¶È
-#define   MAX_DRIVE_SIZE    		4*1024*1024*1024            //Éè±¸ÈÝÁ¿£¨×Ö½Ú£©
-#define   SECTOR_SIZE       		512                         //Éè±¸Ò»¸öÉÈÇøµÄ´óÐ¡£¨×Ö½Ú£©
-#define   INODE_SIZE        		32                          //inode½á¹¹ÌåµÄ´óÐ¡£¨×Ö½Ú£©
-#define   DIR_ENTRY_SIZE    		sizeof(struct dir_entry)    //dir_entry½á¹¹ÌåµÄ´óÐ¡£¨×Ö½Ú£©
-#define   SUPER_BLOCK_SIZE  		56                          //Ò»¸ö³¬¼¶¿é½á¹¹ÌåµÄ´óÐ¡£¨×Ö½Ú£©
-#define   NUM_ROOT_INODE    		1                           //¸ùÄ¿Â¼/µÄinodeºÅ
-#define   SIZE_DEFAULT_FILE_SECTS   2048                        //Ã¿¸öÎÄ¼þÔÊÐíÕ¼ÓÃµÄ×î´óÉÈÇøÊý£¬
-																  //¼´Ã¿¸öÎÄ¼þ×î´óÎª2048 * 512 = 1MB
+#define   MAX_DRIVE_SIZE    		4*1024*1024*1024            //ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö½Ú£ï¿½
+#define   SECTOR_SIZE       		512                         //ï¿½è±¸Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä´ï¿½Ð¡ï¿½ï¿½ï¿½Ö½Ú£ï¿½
+#define   INODE_SIZE        		32                          //inodeï¿½á¹¹ï¿½ï¿½Ä´ï¿½Ð¡ï¿½ï¿½ï¿½Ö½Ú£ï¿½
+#define   DIR_ENTRY_SIZE    		sizeof(struct dir_entry)    //dir_entryï¿½á¹¹ï¿½ï¿½Ä´ï¿½Ð¡ï¿½ï¿½ï¿½Ö½Ú£ï¿½
+#define   SUPER_BLOCK_SIZE  		56                          //Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½á¹¹ï¿½ï¿½Ä´ï¿½Ð¡ï¿½ï¿½ï¿½Ö½Ú£ï¿½
+#define   NUM_ROOT_INODE    		1                           //ï¿½ï¿½Ä¿Â¼/ï¿½ï¿½inodeï¿½ï¿½
+#define   SIZE_DEFAULT_FILE_SECTS   2048                        //Ã¿ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+																  //ï¿½ï¿½Ã¿ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Îª2048 * 512 = 1MB
 
-#define   I_DIRECTORY         		0                           //ÎÄ¼þÀàÐÍ£ºÄ¿Â¼ÎÄ¼þ
-#define   I_CHAR_SPECIAL            1                           //ÎÄ¼þÀàÐÍ£º×Ö·ûÉè±¸ÎÄ¼þ
-#define   I_REGULAR                 2							//ÎÄ¼þÀàÐÍ£ºÆÕÍ¨ÎÄ¼þ
+#define   I_DIRECTORY         		0                           //ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Í£ï¿½Ä¿Â¼ï¿½Ä¼ï¿½
+#define   I_CHAR_SPECIAL            1                           //ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Í£ï¿½ï¿½Ö·ï¿½ï¿½è±¸ï¿½Ä¼ï¿½
+#define   I_REGULAR                 2							//ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Í£ï¿½ï¿½ï¿½Í¨ï¿½Ä¼ï¿½
 
-#define   TOTAL_CONSOLES            3                           //¿ØÖÆÌ¨µÄÊýÁ¿
+#define   TOTAL_CONSOLES            3                           //ï¿½ï¿½ï¿½ï¿½Ì¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 #define   NUM_FILES                 64
 #define   NUM_FILE_DESC             64
 #define   NUM_INODE                 64
-#define   NUM_SUPER_BLOCK           8                           /* ÔÊÐí³¬¼¶¿éµÄ×î´óÊýÄ¿£¨Ò²¼´×î¶àÖ§³ÖµÄÎÄ¼þÏµÍ³ÊýÄ¿£©*/
+#define   NUM_SUPER_BLOCK           8                           /* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½Ò²ï¿½ï¿½ï¿½ï¿½ï¿½Ö§ï¿½Öµï¿½ï¿½Ä¼ï¿½ÏµÍ³ï¿½ï¿½Ä¿ï¿½ï¿½*/
 
 #define   O_CREAT                   0
 #define   O_RDWR                    1
@@ -32,55 +33,48 @@
 #define   NO_DEV                    0
 #define   ROOT_DEV                  1
 
-#define   ROOT_INODE                1                           /* ¸ùÄ¿Â¼µÄinode */
+#define   ROOT_INODE                1                           /* ï¿½ï¿½Ä¿Â¼ï¿½ï¿½inode */
 
 #define   FSBUF_SIZE                512
 
 #define   SECTOR_SIZE_SHIFT         9
 
-#define FILE_NR 64												/* Ò»¸ö½ø³Ì×î¶à¿ÉÒÔ´ò¿ªµÄÎÄ¼þÊýÄ¿ */
 /* 
 struct super_block
 {
-	int magic;                   //ÎÄ¼þÏµÍ³±êÊ¶
-	int total_inodes;            //ÎÄ¼þÏµÍ³×ÜinodeÊý
-	unsigned int total_sects;    //ÎÄ¼þÏµÍ³×ÜÉÈÇøÊý
+	int magic;                   //ï¿½Ä¼ï¿½ÏµÍ³ï¿½ï¿½Ê¶
+	int total_inodes;            //ï¿½Ä¼ï¿½ÏµÍ³ï¿½ï¿½inodeï¿½ï¿½
+	unsigned int total_sects;    //ï¿½Ä¼ï¿½ÏµÍ³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		
-	int size_inode_sects;        //inodeÕ¼ÓÃµÄÉÈÇøÊý
-	int size_imap_sects;         //inodeÎ»Í¼Õ¼ÓÃµÄÉÈÇøÊý
-	int size_smap_sects;		 //sectorÎ»Í¼Õ¼ÓÃµÄÉÈÇøÊý
+	int size_inode_sects;        //inodeÕ¼ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	int size_imap_sects;         //inodeÎ»Í¼Õ¼ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	int size_smap_sects;		 //sectorÎ»Í¼Õ¼ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	
-	int num_root_inode;          //¸ùÄ¿Â¼¶ÔÓ¦µÄinodeºÅ    
-	int num_1st_sect;            //µÚÒ»¸öÊý¾ÝÉÈÇøµÄÉÈÇøºÅ    
-	int inode_size;              //Ò»¸öinode½á¹¹ÌåÓÐ¶àÉÙ×Ö½Ú
+	int num_root_inode;          //ï¿½ï¿½Ä¿Â¼ï¿½ï¿½Ó¦ï¿½ï¿½inodeï¿½ï¿½    
+	int num_1st_sect;            //ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½    
+	int inode_size;              //Ò»ï¿½ï¿½inodeï¿½á¹¹ï¿½ï¿½ï¿½Ð¶ï¿½ï¿½ï¿½ï¿½Ö½ï¿½
 //	int inode_isize_off;
 //	int inode_start_off;
-	int dir_entry_size;          //ÎÄ¼þÏµÍ³ÔÊÐíµÄ×ÜÎÄ¼þÊý
+	int dir_entry_size;          //ï¿½Ä¼ï¿½ÏµÍ³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
 //	int dir_ent_inode_off;
 //	int dir_ent_fname_off;
 	
-	//ÒÔÏÂµÄÖ»»áÔÚÄÚ´æÖÐ´æÔÚ
+	//ï¿½ï¿½ï¿½Âµï¿½Ö»ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½ï¿½Ð´ï¿½ï¿½ï¿½
 	int sb_dev;
 };
 
 struct inode
 {
-	int i_mode;                //ÎÄ¼þÀàÐÍ
-	int i_size;                //ÎÄ¼þ´óÐ¡
-	int i_start_sect;          //ÎÄ¼þÆðÊ¼ÉÈÇøºÅ
-	int i_total_sects;         //ÎÄ¼þÕ¼ÓÃµÄ×ÜÉÈÇøÊý
+	int i_mode;                //ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½
+	int i_size;                //ï¿½Ä¼ï¿½ï¿½ï¿½Ð¡
+	int i_start_sect;          //ï¿½Ä¼ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	int i_total_sects;         //ï¿½Ä¼ï¿½Õ¼ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	char i_unused[16];         //
 
-	//ÒÔÏÂµÄÖ»»áÔÚÄÚ´æÖÐ´æÔÚ
+	//ï¿½ï¿½ï¿½Âµï¿½Ö»ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½ï¿½Ð´ï¿½ï¿½ï¿½
 	int i_dev;				   //
-	int i_cnt;                 //´ËinodeÍ¬Ê±±»¶àÉÙ¸ö½ø³Ì¹²Ïí
-	int i_num;                 //inodeºÅ
-};
-
-struct dir_entry
-{
-	int inode_num;                       //Ä¿Â¼µÄinodeËùÔÚµÄÉÈÇøºÅ
-	char name[MAX_FILENAME_LEN];         //ÎÄ¼þÃû³Æ
+	int i_cnt;                 //ï¿½ï¿½inodeÍ¬Ê±ï¿½ï¿½ï¿½ï¿½ï¿½Ù¸ï¿½ï¿½ï¿½ï¿½Ì¹ï¿½ï¿½ï¿½
+	int i_num;                 //inodeï¿½ï¿½
 };
 
 void create_fs(void);
@@ -94,4 +88,6 @@ int read(int fd, char *buffer, int count);
 
 void show_dir_entry(void);
 */
+int simple_ext2_init(void);
+
 #endif

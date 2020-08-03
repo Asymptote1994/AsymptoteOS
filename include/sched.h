@@ -2,15 +2,15 @@
 #define __SCHED_H__
 
 #include <list.h>
-#include <file.h>
+#include <fs.h>
 
 
 struct task_struct {
-	unsigned int sp;				/* sp±ØÐë·ÅÔÚµÚÒ»¸öÎ»ÖÃ£¬±£Ö¤ÆäµØÖ·ºÍ½á¹¹ÌåµÄÊ×µØÖ·ÏàÍ¬ */
-	unsigned int pid;				/* ½ø³Ì±êÊ¶ºÅ */
-	unsigned int state;				/* ½ø³Ì×´Ì¬ */
-	struct file *filp[FILE_NR];		/* ½ø³Ì´ò¿ªÎÄ¼þÊý×é */
-	struct list_head list;			/* ÄÚÇ¶Í¨ÓÃÁ´±í */
+	unsigned int sp;				/* spï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½Ò»ï¿½ï¿½Î»ï¿½Ã£ï¿½ï¿½ï¿½Ö¤ï¿½ï¿½ï¿½Ö·ï¿½Í½á¹¹ï¿½ï¿½ï¿½ï¿½×µï¿½Ö·ï¿½ï¿½Í¬ */
+	unsigned int pid;				/* ï¿½ï¿½ï¿½Ì±ï¿½Ê¶ï¿½ï¿½ */
+	unsigned int state;				/* ï¿½ï¿½ï¿½ï¿½×´Ì¬ */
+	struct file *filp[FILE_NR];		/* ï¿½ï¿½ï¿½Ì´ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ */
+	struct list_head list;			/* ï¿½ï¿½Ç¶Í¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
 };
 
 void task_init(void);

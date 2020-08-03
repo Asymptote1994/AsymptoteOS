@@ -1,5 +1,11 @@
 #include <list.h>
 
+void INIT_LIST_HEAD(struct list_head *list)
+{
+	list->next = list;
+	list->prev = list;
+}
+
 void list_init(struct list_head *head)
 {
 	head->prev = head;
@@ -89,7 +95,7 @@ void list_add_chain_tail(struct list_head *ch,struct list_head *ct,struct list_h
 }
 
 /*
- * 此处仅作理解用，不进行使用
+ * 锟剿达拷锟斤拷锟斤拷锟斤拷锟斤拷锟矫ｏ拷锟斤拷锟斤拷锟斤拷使锟斤拷
  */
 struct example {
 	char a;

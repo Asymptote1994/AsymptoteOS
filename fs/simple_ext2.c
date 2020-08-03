@@ -15,7 +15,7 @@
 
 
 #include <string.h>
-#include <file.h>
+#include <simple_ext2.h>
 #include <sched.h>
 #include <sd.h>
 #include <fs.h>
@@ -23,6 +23,8 @@
 #define u32 unsigned int
 #define u16 unsigned short
 #define u8  unsigned char
+
+#define NULL ((void *)0)
 
 u8 buf[FSBUF_SIZE];
 
@@ -1056,7 +1058,7 @@ int simple_ext2_read(int fd, char *buffer, int count)
 	return do_rdwt(fd, buffer, count, 1); 
 }
 
-void show_dir_entry(void)
+void simple_ext2_show_dir_entry(void)
 {
 	int y = 31;
 	struct dir_entry *de;
@@ -1077,7 +1079,7 @@ void show_dir_entry(void)
 	}
 }
 
-struct file_operations simple_ext2_fops {
+struct file_operations simple_ext2_fops = {
 	.open = simple_ext2_open,
 	.read = simple_ext2_read,
 	.write = simple_ext2_write,
@@ -1092,18 +1094,20 @@ struct file_operations simple_ext2_fops {
 
 static struct file_system_type simple_ext2_fs_type = {
 	.name		= "simple_ext2",
-	.mount		= simple_ext2_mount,
-	.fops		= simple_ext2_fops,
+//	.mount		= simple_ext2_mount,
+	.fops		= &simple_ext2_fops,
 };
+
 
 int simple_ext2_init(void)
 {
 	int ret;
+
+	init_fs();
 	
 	ret = register_filesystem(&simple_ext2_fs_type);
 	// simple_ext2_super_block.device = storage[RAMDISK];
 	
 	return ret;
 }
-
 

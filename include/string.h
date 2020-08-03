@@ -5,7 +5,7 @@
 /* We don't want strings.h stuff being user by user stuff by accident */
 
 
-#include <ctype.h>
+#include <types.h>
 
 extern char * ___strtok;
 extern char * strpbrk(const char *,const char *);

@@ -321,11 +321,11 @@ void romfs_mount()
 {
 
 }
-struct file_operations romfs_fops {
+struct file_operations romfs_fops = {
 	.open = romfs_open,
 	.read = romfs_read,
 	.release = romfs_close,
-}
+};
 
 // struct super_block romfs_super_block = {
 // 	.namei = simple_romfs_namei,
@@ -335,15 +335,15 @@ struct file_operations romfs_fops {
 
 static struct file_system_type romfs_fs_type = {
 	.name		= "romfs",
-	.mount		= romfs_mount,
-	.fops 		= romfs_fops,
+//	.mount		= romfs_mount,
+	.fops 		= &romfs_fops,
 };
 
 int romfs_init(void)
 {
 	int ret;
 	
-	ret = register_file_system(&romfs_fs_type);
+	ret = register_filesystem(&romfs_fs_type);
 	// romfs_super_block.device = storage[RAMDISK];
 	
 	return ret;

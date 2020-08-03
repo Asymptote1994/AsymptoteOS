@@ -1,11 +1,16 @@
-#ifndef FS_H__
-#define FS_H__
+#ifndef __FS_H__
+#define __FS_H__
+
+#include <list.h>
 
 #define MAX_SUPER_BLOCK	(8)
 
 #define ROMFS	0
 
 //struct super_block;
+#define   MAX_FILENAME_LEN         	12                          //�ļ�������󳤶�
+
+#define FILE_NR 64												/* һ�����������Դ򿪵��ļ���Ŀ */
 
 struct file_operations {
 	// int (*read) (struct file *, char __user *, size_t, loff_t *);
@@ -26,6 +31,16 @@ struct file
 };
 
 struct inode{
+	int i_mode;                //�ļ�����
+	int i_size;                //�ļ���С
+	int i_start_sect;          //�ļ���ʼ������
+	int i_total_sects;         //�ļ�ռ�õ���������
+	char i_unused[16];         //
+
+	//���µ�ֻ�����ڴ��д���
+	int i_dev;				   //
+	int i_cnt;                 //��inodeͬʱ�����ٸ����̹���
+	int i_num;                 //inode��
 //	char *name;
 	char name[50];
 	unsigned int flags;
@@ -62,15 +77,23 @@ struct super_block{
 	char *name;
 };
 
+struct dir_entry
+{
+	int inode_num;                       //Ŀ¼��inode���ڵ�������
+	char name[MAX_FILENAME_LEN];         //�ļ�����
+};
+
 struct file_system_type {
 	const char *name;
 	const struct file_operations *fops;
-	struct dentry *(*mount) (struct file_system_type *, int,
-		       const char *, void *);
-	struct list_head next;
+//	struct dentry *(*mount) (struct file_system_type *, int,
+//		       const char *, void *);
+	struct list_head fs_next;
 };
 
 // extern struct super_block *fs_type[];
+void vfs_init(void);
+int register_filesystem(struct file_system_type *fs_type);
 
 #endif
 

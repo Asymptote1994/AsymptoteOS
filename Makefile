@@ -18,10 +18,11 @@ BUILTIN += drivers/lcd.o  \
 		   drivers/sd.o	  \
 		   drivers/init.o
 
-BUILTIN += fs/romfs.o
-#file.o
+BUILTIN += fs/fs.o \
+		   fs/romfs.o \
+		   fs/simple_ext2.o
 
-BUILTIN += mm/simple_mem.o
+BUILTIN += mm/mem.o
 
 .PHONY:
 
@@ -36,6 +37,7 @@ kernel.bin: $(BUILTIN) lib/libc.a
 	$(LD) -T kernel.lds $^ -o kernel.elf
 	$(OBJCOPY) -S kernel.elf -O binary $@
 	$(OBJJUMP) -D -m arm kernel.elf > kernel.dis
+	cp kernel.bin /mnt/hgfs/vmware_share
 
 %.o:%.c
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -44,29 +46,5 @@ kernel.bin: $(BUILTIN) lib/libc.a
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
+	rm -f $(shell find -name "*.o")
 	rm -rf *.o *.elf *.dis *.bin
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

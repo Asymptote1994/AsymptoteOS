@@ -1,7 +1,7 @@
 #ifndef __ROMFS_H__
 #define __ROMFS_H__
 
-#include <fs.h>
+//#include <fs.h>
 
 struct romfs_super_block {
 	unsigned int word0;
@@ -38,5 +38,6 @@ struct romfs_inode {
 //extern struct super_block romfs_super_block;
 void simple_romfs_namei(struct inode *inode, struct super_block *block, char *dir);
 unsigned int romfs_get_daddr(struct inode *node);
+int romfs_init(void);
 
 #endif

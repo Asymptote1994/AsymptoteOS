@@ -4,8 +4,8 @@
 #include <fork.h>
 #include <nand.h>
 #include <lcd.h>
-//#include <file.h>
-//#include <fs.h>
+#include <simple_ext2.h>
+#include <fs.h>
 #include <romfs.h>
 
 #define NULL ((void *)0)
@@ -76,7 +76,8 @@ void fs_task(char *path_name)
 		
 	printk("reading data....\r\n");
 	
-	fd = open(path_name, O_CREAT);
+//	fd = do_open("romfs", path_name, O_CREAT);
+	fd = do_open("simple_ext2", path_name, O_CREAT);
 	if (fd == -1) {
 		printk("open %s failed!\r\n", path_name);
 		return -1;
@@ -84,27 +85,28 @@ void fs_task(char *path_name)
 		printk("open %s success, fd = %d\r\n", fd, path_name);
 	}
 
-	// n = write(fd, buf_write, strlen(buf_write));
-	// printk("写入的文件长度: %d\r\n", n);
+	n = do_write(fd, buf_write, strlen(buf_write));
+	printk("file length: %d\r\n", n);	
 	
-	// close(fd);
+	do_close(fd);
 
-	// fd = open("/first", O_RDWR);
-	// if (fd == -1) {
-	// 	printk("open failed!\r\n");
-	// 	return -1;
-	// }
-	
-	// printk("文件打开成功，返回的fd: %d\r\n", fd);
-	
-	n = read(fd, buf_read, strlen(buf_write));				
+
+	fd = do_open("simple_ext2", path_name, O_RDWR);
+	if (fd == -1) {
+		printk("open %s failed!\r\n", path_name);
+		return -1;
+	} else {
+		printk("open %s success, fd = %d\r\n", fd, path_name);
+	}
+		
+	n = do_read(fd, buf_read, strlen(buf_write));				
 	//buffer[n] = 0;
 	printk("file length: %d\r\n", n);	
 	for (i = 0; i < n; i++)
 		printk("%c",buf_read[i]);
 	printk("\r\n");
 
-	close(fd);
+	do_close(fd);
 	printk("leave fs_task()\r\n");
 	do_exit();
 }
@@ -114,7 +116,7 @@ int read_file(char *path_name)
 	int i, n = 0;
 	int fd = -5;
 			
-	fd = open(path_name, O_CREAT);
+	fd = do_open(path_name, O_CREAT);
 	if (fd == -1) {
 		printk("open %s failed!\r\n", path_name);
 		return -1;
@@ -122,14 +124,14 @@ int read_file(char *path_name)
 		printk("open %s success, fd = %d\r\n", fd, path_name);
 	}
 	
-	n = read(fd, buf_read, strlen(""));				
+	n = do_read(fd, buf_read, strlen(""));				
 
 	printk("file length: %d\r\n", n);	
 //	for (i = 0; i < n; i++)
 //		printk("%c",buf_read[i]);
 //	printk("\r\n");
 
-	close(fd);
+	do_close(fd);
 	return n;
 }
 
@@ -155,7 +157,9 @@ void run_commond(char *command)
 {
 	if (strcmp(command, "ls") == 0) {
 		show_dir_entry();	
-	} else if (strcmp(command, "zhangxu") == 0 || strcmp(command, "Makefile") == 0) {
+	} else if (strcmp(command, "zhangxu") == 0 || 
+			strcmp(command, "/hahaha") == 0 || 
+			strcmp(command, "Makefile") == 0) {
 		do_fork(fs_task, (void *)command);
 	} else if (strcmp(command, "cat.bin") == 0) {
 		execv(command, NULL);
@@ -167,6 +171,7 @@ void run_commond(char *command)
 		printk("%s: command not found\r\n", command);
 	}
 }
+
 
 void shell(void *p)
 {
@@ -194,10 +199,53 @@ void shell(void *p)
 	} while (1);
 }
 
+//void test_friend_mem(void)
+//{
+//	char *p1,*p2,*p3,*p4;
+//
+//	p1=(char *)get_free_pages(0,6);
+//	printk("the return address of get_free_pages is 0x%x\r\n",p1);
+//
+//	p2=(char *)get_free_pages(0,6);
+//	printk("the return address of get_free_pages is 0x%x\r\n",p2);
+//
+//	put_free_pages(p2,6);
+//	put_free_pages(p1,6);
+//
+//	p3=(char *)get_free_pages(0,7);
+//	printk("the return address of get_free_pages is 0x%x\r\n",p3);
+//
+//	p4=(char *)get_free_pages(0,7);
+//	printk("the return address of get_free_pages is 0x%x\r\n",p4);
+//}
+//
+//void test_kmalloc_mem(void)
+//{
+//	char *p1,*p2,*p3,*p4;
+//
+//	p1=kmalloc(127);
+//	printk("the first alloced address is 0x%x\r\n",p1);
+//
+//	p2=kmalloc(124);
+//	printk("the second alloced address is 0x%x\r\n",p2);
+//
+//	kfree(p1);
+//	kfree(p2);
+//
+//	p3=kmalloc(119);
+//	printk("the third alloced address is 0x%x\r\n",p3);
+//
+//	p4=kmalloc(512);
+//	printk("the forth alloced address is 0x%x\r\n",p4);
+//}
+
 void init(void)
 {	
 	int pid;
-
+	char *p;
+	
+	init_page_map();
+	kmalloc_init();
 	key_init();
 	uart0_init();
 	led_init();
@@ -210,9 +258,23 @@ void init(void)
 	pid = do_fork(shell, (void *)0x3);
 	do_fork(lcd_task, (void *)0x3);
 
-//	init_fs();
+//	test_friend_mem();
+//	test_kmalloc_mem();
+	char *p1,*p2,*p3,*p4;
 
-	printk("this is the init task.\n\r");
+//	p1=kmalloc(127);
+//	printk("the first alloced address is 0x%x\r\n",p1);
+
+//	p2=kmalloc(124);
+//	printk("the second alloced address is 0x%x\r\n",p2);
+//
+//	kfree(p1);
+//	kfree(p2);
+//	p3=kmalloc(119);
+//	printk("the third alloced address is 0x%x\r\n",p3);
+
+//	p4=kmalloc(512);
+//	printk("the forth alloced address is 0x%x\r\n",p4);
 
 	while (1) {
 		GPFDAT = ~(1 << 4);

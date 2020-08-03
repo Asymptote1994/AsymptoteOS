@@ -1,7 +1,8 @@
 #ifndef __LIST_H__
 #define __LIST_H__
 
-#include <ctype.h>
+#include <types.h>
+
 struct list_head {
 	struct list_head *prev;
 	struct list_head *next;
@@ -14,7 +15,7 @@ void list_del(struct list_head *entry);
 int list_empty(struct list_head *head);
 
 /*
- * list_entry - ÓÉlist_headÀàĞÍ±äÁ¿»ñµÃ¶ÔÓ¦µÄ½á¹¹ÌåÖ¸Õë
+ * list_entry - ï¿½ï¿½list_headï¿½ï¿½ï¿½Í±ï¿½ï¿½ï¿½ï¿½ï¿½Ã¶ï¿½Ó¦ï¿½Ä½á¹¹ï¿½ï¿½Ö¸ï¿½ï¿½
  *
  */
 #define list_entry(ptr, type, member) \
