@@ -180,7 +180,7 @@ u8 sdi_init()
 			SDCard.sdiRCA = 1;
 			SDIPRE = 2;  //16MHZ
 			printk("MMC Card RCA = 0x%x\r\n",SDCard.sdiRCA);
-			printk("MMC Frequency is %dHz\r\n",(PCLK/(SDIPRE+1)));
+			// printk("MMC Frequency is %dHz\r\n",(PCLK/(SDIPRE+1)));
 		} else {
 			printk("Read MMC RCA is fail!\r\n");
 			return 0;
@@ -190,7 +190,7 @@ u8 sdi_init()
 		if (CMD3(0,&SDCard.sdiRCA)) {
 			SDIPRE = 1; // Normal clock=25MHz
 			printk("SD Card RCA = 0x%x\r\n",SDCard.sdiRCA);
-			printk("SD Frequency is %dHz\r\n",(PCLK/(SDIPRE+1)));
+			// printk("SD Frequency is %dHz\r\n",(PCLK/(SDIPRE+1)));
 		} else {
 			printk("Read SD RCA is fail!\r\n");
 			return 0;
