@@ -74,7 +74,8 @@ void init_page_buddy(void){
 }
 
 
-void init_page_map(void){
+void init_page_map(void)
+{
 	int i;
 	struct page *pg=(struct page *)KERNEL_PAGE_START;
 	init_page_buddy();
@@ -208,7 +209,8 @@ void free_pages(struct page *pg,int order){
 	put_pages_to_list(pg,order);
 }
 
-void *get_free_pages(unsigned int flag,int order){
+void *get_free_pages(unsigned int flag,int order)
+{
 	struct page * page;
 	page = alloc_pages(flag, order);
 	if (!page)
@@ -216,7 +218,8 @@ void *get_free_pages(unsigned int flag,int order){
 	return	page_address(page);
 }
 
-void put_free_pages(void *addr,int order){
+void put_free_pages(void *addr,int order)
+{
 	free_pages(virt_to_page((unsigned int)addr),order);
 }
 
@@ -338,7 +341,8 @@ struct kmem_cache kmalloc_cache[KMALLOC_CACHE_SIZE]={{0,0,0,0,NULL,NULL,NULL},};
 #define kmalloc_cache_size_to_index(size)	((((size))>>(KMALLOC_BIAS_SHIFT)))
 
 
-int kmalloc_init(void){
+int kmalloc_init(void)
+{
 	int i=0;
 
 	for(i=0;i<KMALLOC_CACHE_SIZE;i++){
@@ -348,14 +352,16 @@ int kmalloc_init(void){
 	return 0;
 }
 
-void *kmalloc(unsigned int size){
+void *kmalloc(unsigned int size)
+{
 	int index=kmalloc_cache_size_to_index(size);
 	if(index>=KMALLOC_CACHE_SIZE)
 		return NULL;
 	return kmem_cache_alloc(&kmalloc_cache[index],0);
 }
 
-void kfree(void *addr){
+void kfree(void *addr)
+{
 	struct page *pg;
 	pg=virt_to_page((unsigned int)addr);
 	kmem_cache_free(pg->cachep,addr);

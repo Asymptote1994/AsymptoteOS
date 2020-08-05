@@ -7,7 +7,12 @@
 #define SECTIONS_ADDRESS_START 0x32000000
 #define PAGE_SIZE 4*1024                      	/* 内存分配的最小单位：一页，大小为4KB */
 
-unsigned long *get_free_page(void);
+extern void init_page_map(void);
+extern int kmalloc_init(void);
+extern void *kmalloc(unsigned int size);
+extern void kfree(void *addr);
+extern void *get_free_pages(unsigned int flag,int order);
+extern void put_free_pages(void *addr,int order);
 
 #endif
 

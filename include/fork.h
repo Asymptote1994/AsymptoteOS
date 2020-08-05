@@ -6,7 +6,7 @@
 #define SP_ADDR_BASE 		 0x34000000
 #define SP_ADDR_SIZE 		 512
 #define TASK_SIZE			 4096
-#define TASK_STRUCT_ADDR_BASE	 0x30300000
+#define TASK_STRUCT_ADDR_BASE	 0x31000000
 
 
 int do_fork(void (*fn)(void *),void *args);

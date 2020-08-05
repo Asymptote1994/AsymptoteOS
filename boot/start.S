@@ -82,30 +82,30 @@ HandleFIQ:
 Reset:
 	ldr sp, =4096     	    	@重启默认进入SVC模式，此处设置SVC模式栈指针
 
-	bl disable_watch_dog
-	bl clock_init
+	@ bl disable_watch_dog
+	@ bl clock_init
 	bl sdram_init
 
-	bl nand_init		    	@初始化 NAND Flash
+	@ bl nand_init		    	@初始化 NAND Flash
 
 	@nand_read函数需要3个参数：
-	ldr r1, =0x30000000     	@1. 目标地址=0x30000000，这是SDRAM的起始地址
-	mov r0, #0		    		@2. 源地址	= 0
-	mov r2, #(1024*30)	    	@3. 复制长度= 50KB
-	bl  nand_read		    	@调用C函数nand_read
+	@ ldr r1, =0x30000000     	@1. 目标地址=0x30000000，这是SDRAM的起始地址
+	@ mov r0, #0		    		@2. 源地址	= 0
+	@ mov r2, #(1024*30)	    	@3. 复制长度= 50KB
+	@ bl  nand_read		    	@调用C函数nand_read
 
 @	bl copy_steppingstone_to_sdram
 	
    	ldr pc, =on_sdram           @ 跳到SDRAM中继续执行
 
 on_sdram:
-	msr cpsr_c, #0xd2       	@ 进入中断模式
-    	ldr sp, =0x33000000     @ 设置中断模式栈指针
+	msr cpsr_c, #0xd2       @ 进入中断模式
+	ldr sp, =0x33000000     @ 设置中断模式栈指针
 
-    	msr cpsr_c, #0xdf       @ 进入系统模式
-    	ldr sp, =0x34000000     @ 设置系统模式栈指针
+	msr cpsr_c, #0xdf       @ 进入系统模式
+	ldr sp, =0x34000000     @ 设置系统模式栈指针
 
-    	msr cpsr_c, #0x5f       @ 设置I-bit=0，开IRQ中断
+	msr cpsr_c, #0x5f       @ 设置I-bit=0，开IRQ中断
 
 	ldr lr, =loop
 	ldr pc, =init

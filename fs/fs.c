@@ -14,8 +14,8 @@ void vfs_init(void)
 {
 	list_init(&fs_list);
 
-	romfs_init();
-	simple_ext2_init();
+	// romfs_init();
+	// simple_ext2_init();
 }
 
 

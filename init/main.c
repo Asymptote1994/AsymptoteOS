@@ -7,6 +7,7 @@
 #include <simple_ext2.h>
 #include <fs.h>
 #include <romfs.h>
+#include <mem.h>
 
 #define NULL ((void *)0)
 
@@ -199,82 +200,75 @@ void shell(void *p)
 	} while (1);
 }
 
-//void test_friend_mem(void)
-//{
-//	char *p1,*p2,*p3,*p4;
-//
-//	p1=(char *)get_free_pages(0,6);
-//	printk("the return address of get_free_pages is 0x%x\r\n",p1);
-//
-//	p2=(char *)get_free_pages(0,6);
-//	printk("the return address of get_free_pages is 0x%x\r\n",p2);
-//
-//	put_free_pages(p2,6);
-//	put_free_pages(p1,6);
-//
-//	p3=(char *)get_free_pages(0,7);
-//	printk("the return address of get_free_pages is 0x%x\r\n",p3);
-//
-//	p4=(char *)get_free_pages(0,7);
-//	printk("the return address of get_free_pages is 0x%x\r\n",p4);
-//}
-//
-//void test_kmalloc_mem(void)
-//{
-//	char *p1,*p2,*p3,*p4;
-//
-//	p1=kmalloc(127);
-//	printk("the first alloced address is 0x%x\r\n",p1);
-//
-//	p2=kmalloc(124);
-//	printk("the second alloced address is 0x%x\r\n",p2);
-//
-//	kfree(p1);
-//	kfree(p2);
-//
-//	p3=kmalloc(119);
-//	printk("the third alloced address is 0x%x\r\n",p3);
-//
-//	p4=kmalloc(512);
-//	printk("the forth alloced address is 0x%x\r\n",p4);
-//}
+#if 1
+void test_friend_mem(void)
+{
+	char *p1,*p2,*p3,*p4;
+
+	p1=(char *)get_free_pages(0,6);
+	printk("the return address of get_free_pages is 0x%x\r\n",p1);
+
+	p2=(char *)get_free_pages(0,6);
+	printk("the return address of get_free_pages is 0x%x\r\n",p2);
+
+	put_free_pages(p2,6);
+	put_free_pages(p1,6);
+
+	p3=(char *)get_free_pages(0,7);
+	printk("the return address of get_free_pages is 0x%x\r\n",p3);
+
+	p4=(char *)get_free_pages(0,7);
+	printk("the return address of get_free_pages is 0x%x\r\n",p4);
+}
+
+void test_kmalloc_mem(void)
+{
+	char *p1,*p2,*p3,*p4;
+
+	p1=kmalloc(127);
+	printk("the first alloced address is 0x%x\r\n",p1);
+
+	p2=kmalloc(124);
+	printk("the second alloced address is 0x%x\r\n",p2);
+
+	kfree(p1);
+	kfree(p2);
+
+	p3=kmalloc(119);
+	printk("the third alloced address is 0x%x\r\n",p3);
+
+	p4=kmalloc(512);
+	printk("the forth alloced address is 0x%x\r\n",p4);
+}
+#endif
 
 void init(void)
 {	
 	int pid;
 	char *p;
-	
-	init_page_map();
-	kmalloc_init();
+
+	printk("\n\rAsymptote v0.1\n\r");
+
 	key_init();
 	uart0_init();
 	led_init();
 	lcd_init();
 	task_init();
-	sdi_init();
+	// sdi_init();
 	timer0_init();
 	vfs_init();
-	
+	init_page_map();
+	kmalloc_init();
+
 	pid = do_fork(shell, (void *)0x3);
 	do_fork(lcd_task, (void *)0x3);
 
-//	test_friend_mem();
-//	test_kmalloc_mem();
-	char *p1,*p2,*p3,*p4;
+	test_friend_mem();
+	test_kmalloc_mem();
 
-//	p1=kmalloc(127);
-//	printk("the first alloced address is 0x%x\r\n",p1);
-
-//	p2=kmalloc(124);
-//	printk("the second alloced address is 0x%x\r\n",p2);
-//
-//	kfree(p1);
-//	kfree(p2);
-//	p3=kmalloc(119);
-//	printk("the third alloced address is 0x%x\r\n",p3);
-
-//	p4=kmalloc(512);
-//	printk("the forth alloced address is 0x%x\r\n",p4);
+	printk("\n\rlinux driver model demo\n\r");
+	platform_bus_init();
+	s3c2440_mmc_init();
 
 	while (1) {
 		GPFDAT = ~(1 << 4);
